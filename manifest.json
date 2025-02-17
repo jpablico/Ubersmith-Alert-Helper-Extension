@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Ubersmith Auto Ticket Closer",
+  "version": "1.0",
+  "description": "Automatically closes matching tickets in Ubersmith.",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://cp.gipnetworks.com/admin/supportmgr/*"], 
+  "content_scripts": [
+    {
+      "matches": [
+        "https://cp.gipnetworks.com/admin/supportmgr/ticket_view.php*",
+        "https://cp.gipnetworks.com/admin/supportmgr/ticket_list.php*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "48": "icon.png"
+  }
+}
