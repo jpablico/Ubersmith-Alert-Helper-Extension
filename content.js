@@ -10,12 +10,10 @@
   function closeMatchingTickets(keyword) {
       // Select the correct tbody that does NOT contain a header row
       let tbodies = document.querySelectorAll("tbody");
-      let ticketTableBody = Array.from(tbodies).find(tbody => 
-          !tbody.querySelector("tr.header")
-      );
+      let ticketTableBody = tbodies[2]; // Directly selecting tbody[2]
 
       if (!ticketTableBody) {
-          console.error("Could not find the correct ticket tbody.");
+          console.error("Could not find tbody[2].");
           alert("Could not find the correct ticket list.");
           return;
       }
