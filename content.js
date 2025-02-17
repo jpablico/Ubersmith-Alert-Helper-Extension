@@ -5,7 +5,7 @@
 
 // content.js - Injected into Ubersmith
 (function() {
-  console.log("✅ Ubersmith Auto Ticket Closer extension loaded successfully.");
+  console.log("Ubersmith Auto Ticket Closer extension loaded successfully.");
 
   function closeMatchingTickets(keyword) {
       // Select the correct tbody that contains the ticket list
@@ -13,12 +13,12 @@
       let ticketTableBody = tbodies[2]; // Directly selecting tbody[2]
 
       if (!ticketTableBody) {
-          console.error("❌ Could not find tbody[2].");
+          console.error("Could not find tbody[2].");
           alert("Could not find the correct ticket list.");
           return;
       }
 
-      console.log("✅ Selected tbody:", ticketTableBody);
+      console.log("Selected tbody:", ticketTableBody);
 
       let ticketRows = ticketTableBody.querySelectorAll("tr");
       let matchingTickets = [];
@@ -37,14 +37,14 @@
           let subjectCell = row.querySelector("td:nth-child(3) a"); // Subject inside <a>
 
           if (!checkboxCell || !ticketNumberCell || !subjectCell) {
-              console.warn(`⚠️ Row ${index} is missing one or more required elements.`);
+              console.warn(`Row ${index} is missing one or more required elements.`);
               return;
           }
 
           let subjectText = subjectCell.innerText.trim();
           let ticketNumber = ticketNumberCell.innerText.trim();
 
-          console.log(`🔍 Checking Ticket #${ticketNumber} | Subject: ${subjectText}`);
+          console.log(`Checking Ticket #${ticketNumber} | Subject: ${subjectText}`);
 
           if (subjectText.includes(keyword)) {
               matchingTickets.push({ checkbox: checkboxCell, ticketNumber, subjectText });
@@ -52,7 +52,7 @@
           }
       });
 
-      console.log(`✅ Found ${matchingTickets.length} matching tickets.`);
+      console.log(`Found ${matchingTickets.length} matching tickets.`);
 
       if (matchingTickets.length === 0) {
           alert("No matching tickets found.");
@@ -68,7 +68,7 @@
       // Set bulk action to "Closed"
       let actionDropdown = document.querySelector("#action_type");
       if (!actionDropdown) {
-          console.error("❌ Action dropdown not found!");
+          console.error("Action dropdown not found!");
           alert("Could not find bulk action dropdown. Please check page structure.");
           return;
       }
@@ -77,13 +77,18 @@
       // Submit bulk action
       let submitButton = document.querySelector("#action_update");
       if (!submitButton) {
-          console.error("❌ Submit button not found!");
+          console.error("Submit button not found!");
           alert("Could not find submit button.");
           return;
       }
 
-      console.log("🚀 Closing tickets...");
+      console.log("Closing tickets...");
       submitButton.click();
+      
+      // Auto-refresh the page after closing tickets
+      setTimeout(() => {
+          location.reload();
+      }, 3000); // Wait 3 seconds before refreshing
   }
 
   // Add UI Elements for user input
@@ -92,7 +97,7 @@
   keywordInput.placeholder = "Enter keyword to close tickets";
   keywordInput.style.position = "fixed";
   keywordInput.style.bottom = "60px";
-  keywordInput.style.right = "20px";
+  keywordInput.style.left = "20px";
   keywordInput.style.padding = "5px";
   keywordInput.style.border = "1px solid #ccc";
 
@@ -100,7 +105,7 @@
   autoCloseButton.innerText = "Close Matching Tickets";
   autoCloseButton.style.position = "fixed";
   autoCloseButton.style.bottom = "20px";
-  autoCloseButton.style.right = "20px";
+  autoCloseButton.style.left = "20px";
   autoCloseButton.style.backgroundColor = "#FF5733";
   autoCloseButton.style.color = "white";
   autoCloseButton.style.padding = "10px";
