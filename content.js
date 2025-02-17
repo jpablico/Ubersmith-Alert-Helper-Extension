@@ -8,14 +8,20 @@
   console.log("Ubersmith Auto Ticket Closer extension loaded successfully.");
   
   function closeMatchingTickets(keyword) {
-      // Select the second tbody (skip the first one which has a header row)
+      // Select the correct tbody that does NOT contain a header row
       let tbodies = document.querySelectorAll("tbody");
-      if (tbodies.length < 2) {
-          console.error("Could not find second tbody");
-          alert("Could not find the ticket list tbody");
+      let ticketTableBody = Array.from(tbodies).find(tbody => 
+          !tbody.querySelector("tr.header")
+      );
+
+      if (!ticketTableBody) {
+          console.error("Could not find the correct ticket tbody.");
+          alert("Could not find the correct ticket list.");
           return;
       }
-      let ticketTableBody = tbodies[1];
+
+      console.log("Selected tbody:", ticketTableBody);
+
       let ticketRows = ticketTableBody.querySelectorAll("tr");
       let matchingTickets = [];
       
