@@ -75,7 +75,7 @@
       actionDropdown.value = "3"; // Value for "Closed"
 
       // Submit bulk action
-      let submitButton = document.querySelector("#submit_button");
+      let submitButton = document.querySelector("#action_update");
       if (!submitButton) {
           console.error("❌ Submit button not found!");
           alert("Could not find submit button.");
