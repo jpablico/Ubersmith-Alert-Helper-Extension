@@ -80,7 +80,13 @@
         }
 
         // Display UI List of tickets to be closed
+        let existingContainer = document.getElementById("ticketListContainer");
+        if (existingContainer) {
+            existingContainer.remove();
+        }
+
         let ticketListContainer = document.createElement("div");
+        ticketListContainer.id = "ticketListContainer";
         ticketListContainer.style.position = "fixed";
         ticketListContainer.style.top = "20px";
         ticketListContainer.style.left = "20px";
