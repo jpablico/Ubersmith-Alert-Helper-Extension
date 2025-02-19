@@ -78,14 +78,16 @@
         
         ticketRows.forEach(row => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            let ticketNumberCell = row.querySelector("td:nth-child(2)");
             let subjectCell = row.querySelector("td:nth-child(3) a");
             
-            if (!checkboxCell || !subjectCell) return;
+            if (!checkboxCell || !subjectCell || !ticketNumberCell) return;
             
             let subjectText = subjectCell.innerText.trim();
+            let ticketNumber = ticketNumberCell.innerText.trim();
             
             if (subjectText.includes(keyword)) {
-                matchingTickets.push(checkboxCell);
+                matchingTickets.push({ checkbox: checkboxCell, ticketNumber, subjectText });
                 row.style.backgroundColor = "#ff6666";
             }
         });
@@ -95,7 +97,74 @@
             return;
         }
 
-        matchingTickets.forEach(checkbox => checkbox.checked = true);
+        // Confirmation List UI
+        let existingContainer = document.getElementById("ticketListContainer");
+        if (existingContainer) {
+            existingContainer.remove();
+        }
+
+        let ticketListContainer = document.createElement("div");
+        ticketListContainer.id = "ticketListContainer";
+        ticketListContainer.style.position = "fixed";
+        ticketListContainer.style.top = "20px";
+        ticketListContainer.style.left = "20px";
+        ticketListContainer.style.width = "350px";
+        ticketListContainer.style.maxHeight = "500px";
+        ticketListContainer.style.overflowY = "auto";
+        ticketListContainer.style.backgroundColor = "white";
+        ticketListContainer.style.border = "1px solid #ccc";
+        ticketListContainer.style.padding = "15px";
+        ticketListContainer.style.zIndex = "1000";
+        ticketListContainer.style.boxShadow = "2px 2px 10px rgba(0, 0, 0, 0.1)";
+
+        let title = document.createElement("h3");
+        title.innerText = "Tickets to be closed:";
+        ticketListContainer.appendChild(title);
+
+        let ticketList = document.createElement("ul");
+        matchingTickets.forEach(ticket => {
+            let listItem = document.createElement("li");
+            listItem.innerText = `#${ticket.ticketNumber}: ${ticket.subjectText}`;
+            ticketList.appendChild(listItem);
+        });
+        ticketListContainer.appendChild(ticketList);
+
+        let confirmButton = document.createElement("button");
+        confirmButton.innerText = "Confirm Close";
+        confirmButton.style.marginTop = "10px";
+        confirmButton.style.backgroundColor = "#FF5733";
+        confirmButton.style.color = "white";
+        confirmButton.style.padding = "5px";
+        confirmButton.style.border = "none";
+        confirmButton.style.cursor = "pointer";
+        confirmButton.onclick = () => {
+            matchingTickets.forEach(ticket => ticket.checkbox.checked = true);
+
+            let actionDropdown = document.querySelector("#action_type");
+            if (!actionDropdown) {
+                console.error("Action dropdown not found!");
+                alert("Could not find bulk action dropdown. Please check page structure.");
+                return;
+            }
+            actionDropdown.value = "3";
+
+            let submitButton = document.querySelector("#action_update");
+            if (!submitButton) {
+                console.error("Submit button not found!");
+                alert("Could not find submit button.");
+                return;
+            }
+
+            console.log("Closing tickets...");
+            submitButton.click();
+
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        };
+
+        ticketListContainer.appendChild(confirmButton);
+        document.body.appendChild(ticketListContainer);
     }
 
     function startRefreshTimer() {
