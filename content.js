@@ -6,7 +6,8 @@
   Auto refreshes the extension periodically with a visual countdown timer.
   Stores known tickets for automatic closure after refresh.
   Allows clearing known tickets from storage.
-  Injects UI elements between ticket tbodies for better integration.
+  Moves the UI to the bottom of the "panel-drawer-content" class, ensuring it takes up the space.
+  Separates functionality into different buttons.
 */
 
 // content.js - Injected into Ubersmith
@@ -16,28 +17,35 @@
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
 
     function createUI() {
-        let tbodies = document.querySelectorAll("tbody");
-        if (tbodies.length < 3) {
-            console.error("Could not find the correct table structure.");
+        let panelDrawer = document.querySelector(".panel-drawer-content");
+        if (!panelDrawer) {
+            console.error("Could not find .panel-drawer-content to insert UI.");
             return;
         }
-        let targetTbody = tbodies[1];
-        
-        let uiContainer = document.createElement("tr");
+
+        let uiContainer = document.createElement("div");
         uiContainer.id = "uber-ui-container";
+        uiContainer.style.padding = "20px";
+        uiContainer.style.background = "#f8f9fa";
+        uiContainer.style.borderTop = "1px solid #ddd";
+        uiContainer.style.marginTop = "10px";
+        uiContainer.style.textAlign = "center";
+        uiContainer.style.display = "flex";
+        uiContainer.style.flexDirection = "column";
+        uiContainer.style.gap = "10px";
+
         uiContainer.innerHTML = `
-            <td colspan="10" style="padding: 10px; background: #f8f9fa; text-align: left; border: 1px solid #ddd;">
-                <input id="keywordInput" type="text" placeholder="Enter keyword to close tickets" 
-                    style="width: 200px; padding: 5px; margin-right: 10px; border: 1px solid #ccc;">
-                <button id="autoCloseButton" style="padding: 5px 10px; background: #FF5733; color: white; border: none; cursor: pointer;">Close Matching Tickets</button>
-                <button id="clearKnownTicketsButton" style="padding: 5px 10px; background: #555; color: white; border: none; cursor: pointer;">Clear Known Tickets</button>
-                <span id="refreshTimer" style="margin-left: 10px; font-weight: bold;">Next refresh in: 5:00</span>
-            </td>
+            <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
+                style="width: 100%; padding: 10px; border: 1px solid #ccc;">
+            <button id="queryTicketsButton" style="padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer;">Find Matching Tickets</button>
+            <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer;">Close Matching Tickets</button>
+            <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer;">Clear Known Tickets</button>
+            <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
-        targetTbody.appendChild(uiContainer);
+        panelDrawer.appendChild(uiContainer);
     }
 
-    function closeMatchingTickets(keyword) {
+    function findMatchingTickets(keyword) {
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
 
@@ -72,6 +80,26 @@
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
     }
 
+    function closeMatchingTickets() {
+        let ticketTableBody = document.querySelectorAll("tbody")[2];
+        if (!ticketTableBody) return;
+
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach(row => {
+            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            let ticketNumberCell = row.querySelector("td:nth-child(2)");
+            if (checkboxCell && ticketNumberCell && knownTickets.includes(ticketNumberCell.innerText.trim())) {
+                checkboxCell.checked = true;
+            }
+        });
+
+        let submitButton = document.querySelector("#action_update");
+        if (submitButton) {
+            submitButton.click();
+            setTimeout(() => location.reload(), 3000);
+        }
+    }
+
     function startRefreshTimer() {
         let remainingTime = 300;
         let timerInterval = setInterval(() => {
@@ -89,9 +117,12 @@
     setTimeout(() => {
         createUI();
         startRefreshTimer();
-        document.getElementById("autoCloseButton").addEventListener("click", () => {
+        document.getElementById("queryTicketsButton").addEventListener("click", () => {
             let keyword = document.getElementById("keywordInput").value.trim();
-            closeMatchingTickets(keyword);
+            findMatchingTickets(keyword);
+        });
+        document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
+            closeMatchingTickets();
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
             localStorage.removeItem("knownTickets");
