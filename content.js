@@ -9,6 +9,8 @@
   Moves the UI to the bottom of the "panel-drawer-content" class, ensuring it takes up the space.
   Separates functionality into different buttons.
   Displays a list of known tickets with an option to confirm closure.
+  Adds rounded borders to buttons.
+  Adds a fading highlight effect while checking tickets.
 */
 
 // content.js - Injected into Ubersmith
@@ -37,12 +39,12 @@
 
         uiContainer.innerHTML = `
             <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
-                style="width: 100%; padding: 10px; border: 1px solid #ccc;">
-            <button id="queryTicketsButton" style="padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer;">Find Matching Tickets</button>
-            <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto;"></div>
-            <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer;">Confirm Closure</button>
-            <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer;">Close Matching Tickets</button>
-            <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer;">Clear Known Tickets</button>
+                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            <button id="queryTicketsButton" style="padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer; border-radius: 8px;">Find Matching Tickets</button>
+            <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
+            <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
+            <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
+            <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Tickets</button>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
         panelDrawer.appendChild(uiContainer);
@@ -77,7 +79,16 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         let matchingTickets = [];
         
-        ticketRows.forEach(row => {
+        ticketRows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transition = "background-color 0.5s ease";
+                row.style.backgroundColor = "#ffff99"; // Highlight in yellow
+            }, index * 100);
+            
+            setTimeout(() => {
+                row.style.backgroundColor = ""; // Fade back to normal
+            }, index * 100 + 800);
+
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
             let subjectCell = row.querySelector("td:nth-child(3) a");
@@ -100,37 +111,8 @@
         updateKnownTicketsUI();
     }
 
-    function closeMatchingTickets() {
-        let ticketTableBody = document.querySelectorAll("tbody")[2];
-        if (!ticketTableBody) return;
-
-        let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach(row => {
-            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
-            let ticketNumberCell = row.querySelector("td:nth-child(2)");
-            if (checkboxCell && ticketNumberCell && knownTickets.includes(ticketNumberCell.innerText.trim())) {
-                checkboxCell.checked = true;
-            }
-        });
-    }
-
-    function startRefreshTimer() {
-        let remainingTime = 300;
-        let timerInterval = setInterval(() => {
-            remainingTime--;
-            let minutes = Math.floor(remainingTime / 60);
-            let seconds = remainingTime % 60;
-            document.getElementById("refreshTimer").innerText = `Next refresh in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                location.reload();
-            }
-        }, 1000);
-    }
-
     setTimeout(() => {
         createUI();
-        startRefreshTimer();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
             let keyword = document.getElementById("keywordInput").value.trim();
             findMatchingTickets(keyword);
