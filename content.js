@@ -222,7 +222,6 @@
             
             if (knownTickets.includes(ticketNumber)) {
                 checkboxCell.checked = true;
-                highlightAllRows();
             }
         });
 
