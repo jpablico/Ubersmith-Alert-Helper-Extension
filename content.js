@@ -1,18 +1,6 @@
 /*
   Ubersmith Auto Ticket Closer - Chrome Extension
   Automates mass closing of tickets in Ubersmith based on keyword matching with confirmation
-  Also finds and closes matching "Problem:" and "Resolved:" tickets.
-  Displays a UI list of tickets to be closed before confirming.
-  Auto refreshes the extension periodically with a visual countdown timer.
-  Stores known tickets for automatic closure after refresh.
-  Allows clearing known tickets from storage.
-  Moves the UI to the bottom of the "panel-drawer-content" class, ensuring it takes up the space.
-  Separates functionality into different buttons.
-  Displays a list of known tickets with their titles and an option to confirm closure.
-  Adds rounded borders to buttons.
-  Restores fading highlight effects for both checking and clearing tickets.
-  Highlights matching tickets in light orange while keeping all functionality.
-  Fully restores ticket selection, storage, UI updates, and clearing functionality.
 */
 
 (function() {
@@ -51,6 +39,7 @@
             <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
             <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
             <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Tickets</button>
+            <button id="clearKnownKeywordsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Keywords</button>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
         panelDrawer.appendChild(uiContainer);
@@ -183,6 +172,13 @@
         alert("Known tickets cleared.");
     }
 
+    function clearKnownKeywords() {
+        localStorage.removeItem("knownKeywords");
+        knownKeywords = [];
+        updateKnownKeywordsUI();
+        alert("Known keywords cleared.");
+    }
+
     function startRefreshTimer() {
         let refreshTimer = document.getElementById("refreshTimer");
         let timeLeft = 300; // 5 minutes in seconds
@@ -242,6 +238,10 @@
         } else {
             console.error("Could not find the update button.");
         }
+
+        // Clear known tickets after closing them
+        clearKnownTickets();
+
         setTimeout(() => location.reload(), 3000);
     }
 
@@ -279,6 +279,9 @@
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
             clearKnownTickets();
+        });
+        document.getElementById("clearKnownKeywordsButton").addEventListener("click", () => {
+            clearKnownKeywords();
         });
 
         // Automatically search for known keywords
