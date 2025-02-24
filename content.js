@@ -132,7 +132,7 @@
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 setTimeout(() => {
                     checkboxCell.checked = true;
-                }, 100); // Delay to ensure the highlight effect is visible
+                }, 500); // Delay to ensure the highlight effect is visible
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
                     ticketTitles[ticketNumber] = subjectText;
