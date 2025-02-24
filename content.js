@@ -85,21 +85,9 @@
         }
     }
 
-    function highlightMatchingRow() {
-        let tbodies = document.querySelectorAll("tbody");
-        let ticketTableBody = tbodies[2];
-
-        if (!ticketTableBody) {
-            console.error("Could not find tbody[2].");
-            alert("Could not find the correct ticket list.");
-            return;
-        }
-
-        let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach((row) => {
-            row.style.transition = "background-color 0.5s ease";
-            row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
-        });
+    function highlightMatchingRow(row) {
+        row.style.transition = "background-color 0.5s ease";
+        row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
     }
 
     function findMatchingTickets(keyword) {
@@ -125,9 +113,8 @@
             
             if (keyword && subjectText.includes(keyword)) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
-                row.style.transition = "background-color 0.5s ease";
-                row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
+                    highlightMatchingRow(row);
                     checkboxCell.checked = true;
                 }, 100); // Delay to ensure the highlight effect is visible
                 if (!knownTickets.includes(ticketNumber)) {
@@ -215,7 +202,6 @@
     setTimeout(() => {
         createUI();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
-            highlightMatchingRow();
             let keyword = document.getElementById("keywordInput").value.trim();
             setTimeout(() => {
                 findMatchingTickets(keyword);
@@ -229,7 +215,6 @@
             setTimeout(() => location.reload(), 3000);
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
-            highlightMatchingRow();
             clearKnownTickets();
         });
 
