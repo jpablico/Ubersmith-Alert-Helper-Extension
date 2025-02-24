@@ -215,6 +215,7 @@
     setTimeout(() => {
         createUI();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
+            highlightMatchingRow();
             let keyword = document.getElementById("keywordInput").value.trim();
             setTimeout(() => {
                 findMatchingTickets(keyword);
@@ -228,6 +229,7 @@
             setTimeout(() => location.reload(), 3000);
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
+            highlightMatchingRow();
             clearKnownTickets();
         });
 
