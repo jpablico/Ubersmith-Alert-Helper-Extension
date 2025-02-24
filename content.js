@@ -6,6 +6,7 @@
   Auto refreshes the extension periodically with a visual countdown timer.
   Stores known tickets for automatic closure after refresh.
   Allows clearing known tickets from storage.
+  Injects UI elements between ticket tbodies for better integration.
 */
 
 // content.js - Injected into Ubersmith
@@ -14,79 +15,26 @@
 
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
 
-    // Ensure UI elements always exist
-    let existingInput = document.getElementById("keywordInput");
-    let existingButton = document.getElementById("autoCloseButton");
-    let existingClearButton = document.getElementById("clearKnownTicketsButton");
-    let existingTimer = document.getElementById("refreshTimer");
-
-    if (!existingInput) {
-        let keywordInput = document.createElement("input");
-        keywordInput.id = "keywordInput";
-        keywordInput.type = "text";
-        keywordInput.placeholder = "Enter keyword to close tickets";
-        keywordInput.style.position = "fixed";
-        keywordInput.style.bottom = "140px";
-        keywordInput.style.left = "20px";
-        keywordInput.style.padding = "5px";
-        keywordInput.style.border = "1px solid #ccc";
-        document.body.appendChild(keywordInput);
-    }
-
-    if (!existingButton) {
-        let autoCloseButton = document.createElement("button");
-        autoCloseButton.id = "autoCloseButton";
-        autoCloseButton.innerText = "Close Matching Tickets";
-        autoCloseButton.style.position = "fixed";
-        autoCloseButton.style.bottom = "100px";
-        autoCloseButton.style.left = "20px";
-        autoCloseButton.style.backgroundColor = "#FF5733";
-        autoCloseButton.style.color = "white";
-        autoCloseButton.style.padding = "10px";
-        autoCloseButton.style.border = "none";
-        autoCloseButton.style.cursor = "pointer";
-        document.body.appendChild(autoCloseButton);
-
-        autoCloseButton.addEventListener("click", () => {
-            let keyword = document.getElementById("keywordInput").value.trim();
-            closeMatchingTickets(keyword);
-        });
-    }
-
-    if (!existingClearButton) {
-        let clearKnownTicketsButton = document.createElement("button");
-        clearKnownTicketsButton.id = "clearKnownTicketsButton";
-        clearKnownTicketsButton.innerText = "Clear Known Tickets";
-        clearKnownTicketsButton.style.position = "fixed";
-        clearKnownTicketsButton.style.bottom = "60px";
-        clearKnownTicketsButton.style.left = "20px";
-        clearKnownTicketsButton.style.backgroundColor = "#555";
-        clearKnownTicketsButton.style.color = "white";
-        clearKnownTicketsButton.style.padding = "10px";
-        clearKnownTicketsButton.style.border = "none";
-        clearKnownTicketsButton.style.cursor = "pointer";
-        document.body.appendChild(clearKnownTicketsButton);
-
-        clearKnownTicketsButton.addEventListener("click", () => {
-            localStorage.removeItem("knownTickets");
-            knownTickets = [];
-            alert("Known tickets cleared.");
-        });
-    }
-
-    if (!existingTimer) {
-        let refreshTimer = document.createElement("div");
-        refreshTimer.id = "refreshTimer";
-        refreshTimer.style.position = "fixed";
-        refreshTimer.style.bottom = "20px";
-        refreshTimer.style.left = "20px";
-        refreshTimer.style.backgroundColor = "#333";
-        refreshTimer.style.color = "white";
-        refreshTimer.style.padding = "5px 10px";
-        refreshTimer.style.borderRadius = "5px";
-        refreshTimer.style.fontSize = "14px";
-        refreshTimer.innerText = "Next refresh in: 5:00";
-        document.body.appendChild(refreshTimer);
+    function createUI() {
+        let tbodies = document.querySelectorAll("tbody");
+        if (tbodies.length < 3) {
+            console.error("Could not find the correct table structure.");
+            return;
+        }
+        let targetTbody = tbodies[1];
+        
+        let uiContainer = document.createElement("tr");
+        uiContainer.id = "uber-ui-container";
+        uiContainer.innerHTML = `
+            <td colspan="10" style="padding: 10px; background: #f8f9fa; text-align: left; border: 1px solid #ddd;">
+                <input id="keywordInput" type="text" placeholder="Enter keyword to close tickets" 
+                    style="width: 200px; padding: 5px; margin-right: 10px; border: 1px solid #ccc;">
+                <button id="autoCloseButton" style="padding: 5px 10px; background: #FF5733; color: white; border: none; cursor: pointer;">Close Matching Tickets</button>
+                <button id="clearKnownTicketsButton" style="padding: 5px 10px; background: #555; color: white; border: none; cursor: pointer;">Clear Known Tickets</button>
+                <span id="refreshTimer" style="margin-left: 10px; font-weight: bold;">Next refresh in: 5:00</span>
+            </td>
+        `;
+        targetTbody.appendChild(uiContainer);
     }
 
     function closeMatchingTickets(keyword) {
@@ -138,5 +86,17 @@
         }, 1000);
     }
 
-    setTimeout(startRefreshTimer, 1000);
+    setTimeout(() => {
+        createUI();
+        startRefreshTimer();
+        document.getElementById("autoCloseButton").addEventListener("click", () => {
+            let keyword = document.getElementById("keywordInput").value.trim();
+            closeMatchingTickets(keyword);
+        });
+        document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
+            localStorage.removeItem("knownTickets");
+            knownTickets = [];
+            alert("Known tickets cleared.");
+        });
+    }, 1000);
 })();
