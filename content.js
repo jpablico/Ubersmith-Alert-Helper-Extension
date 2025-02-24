@@ -85,9 +85,24 @@
         }
     }
 
-    function highlightMatchingRow(row) {
-        row.style.transition = "background-color 0.5s ease";
-        row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+    function highlightAllRows() {
+        let tbodies = document.querySelectorAll("tbody");
+        let ticketTableBody = tbodies[2];
+
+        if (!ticketTableBody) {
+            console.error("Could not find tbody[2].");
+            alert("Could not find the correct ticket list.");
+            return;
+        }
+
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach((row) => {
+            row.style.transition = "background-color 0.5s ease";
+            row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+            setTimeout(() => {
+                row.style.backgroundColor = ""; // Fade out
+            }, 1000); // Delay to start fading out
+        });
     }
 
     function findMatchingTickets(keyword) {
@@ -114,7 +129,6 @@
             if (keyword && subjectText.includes(keyword)) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 setTimeout(() => {
-                    highlightMatchingRow(row);
                     checkboxCell.checked = true;
                 }, 100); // Delay to ensure the highlight effect is visible
                 if (!knownTickets.includes(ticketNumber)) {
@@ -203,6 +217,7 @@
         createUI();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
             let keyword = document.getElementById("keywordInput").value.trim();
+            highlightAllRows();
             setTimeout(() => {
                 findMatchingTickets(keyword);
             }, 500); // Delay to ensure the highlight effect is visible
@@ -220,6 +235,7 @@
 
         // Automatically search for known keywords
         knownKeywords.forEach(keyword => {
+            highlightAllRows();
             setTimeout(() => {
                 findMatchingTickets(keyword);
             }, 100); // Delay to ensure the highlight effect is visible
