@@ -216,7 +216,9 @@
         createUI();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
             let keyword = document.getElementById("keywordInput").value.trim();
-            findMatchingTickets(keyword);
+            setTimeout(() => {
+                findMatchingTickets(keyword);
+            }, 500); // Delay to ensure the highlight effect is visible
         });
         document.getElementById("confirmCloseButton").addEventListener("click", () => {
             closeMatchingTickets();
@@ -231,7 +233,9 @@
 
         // Automatically search for known keywords
         knownKeywords.forEach(keyword => {
-            findMatchingTickets(keyword);
+            setTimeout(() => {
+                findMatchingTickets(keyword);
+            }, 500); // Delay to ensure the highlight effect is visible
         });
 
         startRefreshTimer(); // Start the refresh timer
