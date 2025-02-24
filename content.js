@@ -15,12 +15,12 @@
   Fully restores ticket selection, storage, UI updates, and clearing functionality.
 */
 
-// content.js - Injected into Ubersmith
 (function() {
     console.log("Ubersmith Auto Ticket Closer extension loaded successfully.");
 
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
     let ticketTitles = JSON.parse(localStorage.getItem("ticketTitles")) || {}; // Store ticket titles
+    let knownKeywords = JSON.parse(localStorage.getItem("knownKeywords")) || []; // Store known keywords
 
     function createUI() {
         let panelDrawer = document.querySelector(".panel-drawer-content");
@@ -32,7 +32,6 @@
         let uiContainer = document.createElement("div");
         uiContainer.id = "uber-ui-container";
         uiContainer.style.padding = "20px";
-        uiContainer.style.background = "#f8f9fa";
         uiContainer.style.borderTop = "1px solid #ddd";
         uiContainer.style.marginTop = "10px";
         uiContainer.style.textAlign = "center";
@@ -43,7 +42,8 @@
         uiContainer.innerHTML = `
             <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
-            <button id="queryTicketsButton" style="padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer; border-radius: 8px;">Find Matching Tickets</button>
+            <button id="queryTicketsButton" style="padding: 10px; background:rgb(87, 168, 254); color: white; border: none; cursor: pointer; border-radius: 8px;">Find Matching Tickets</button>
+            <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
             <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
             <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
             <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
@@ -52,7 +52,22 @@
         `;
         panelDrawer.appendChild(uiContainer);
 
+        updateKnownKeywordsUI();
         updateKnownTicketsUI();
+    }
+
+    function updateKnownKeywordsUI() {
+        let knownKeywordsList = document.getElementById("knownKeywordsList");
+        knownKeywordsList.innerHTML = "<strong>Known Keywords:</strong><br>";
+        if (knownKeywords.length === 0) {
+            knownKeywordsList.innerHTML += "No known keywords.";
+        } else {
+            knownKeywords.forEach(keyword => {
+                let item = document.createElement("div");
+                item.innerText = keyword;
+                knownKeywordsList.appendChild(item);
+            });
+        }
     }
 
     function updateKnownTicketsUI() {
@@ -125,6 +140,29 @@
         alert("Known tickets cleared.");
     }
 
+    function startRefreshTimer() {
+        let refreshTimer = document.getElementById("refreshTimer");
+        let timeLeft = 300; // 5 minutes in seconds
+
+        let timerInterval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                location.reload();
+            } else {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                refreshTimer.innerText = `Next refresh in: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                timeLeft--;
+            }
+        }, 1000);
+    }
+
+    function closeMatchingTickets() {
+        // Implement the logic to close matching tickets
+        console.log("Closing matching tickets...");
+        // Example: document.querySelector("#action_update").click();
+    }
+
     setTimeout(() => {
         createUI();
         document.getElementById("queryTicketsButton").addEventListener("click", () => {
@@ -141,5 +179,12 @@
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
             clearKnownTickets();
         });
+
+        // Automatically search for known keywords
+        knownKeywords.forEach(keyword => {
+            findMatchingTickets(keyword);
+        });
+
+        startRefreshTimer(); // Start the refresh timer
     }, 1000);
 })();
