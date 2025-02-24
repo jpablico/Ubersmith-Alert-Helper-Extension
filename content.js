@@ -162,9 +162,34 @@
     }
 
     function closeMatchingTickets() {
-        // Implement the logic to close matching tickets
-        console.log("Closing matching tickets...");
-        // Example: document.querySelector("#action_update").click();
+        let tbodies = document.querySelectorAll("tbody");
+        let ticketTableBody = tbodies[2];
+
+        if (!ticketTableBody) {
+            console.error("Could not find tbody[2].");
+            alert("Could not find the correct ticket list.");
+            return;
+        }
+
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach((row, index) => {
+            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            let ticketNumberCell = row.querySelector("td:nth-child(2)");
+            let subjectCell = row.querySelector("td:nth-child(3) a");
+            
+            if (!checkboxCell || !subjectCell || !ticketNumberCell) return;
+            
+            let ticketNumber = ticketNumberCell.innerText.trim();
+            
+            if (knownTickets.includes(ticketNumber)) {
+                checkboxCell.checked = true;
+                highlightMatchingRow(row);
+            }
+        });
+
+        // Simulate clicking the update button to close tickets
+        document.querySelector("#action_update").click();
+        setTimeout(() => location.reload(), 3000);
     }
 
     setTimeout(() => {
