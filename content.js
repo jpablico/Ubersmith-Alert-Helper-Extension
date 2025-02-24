@@ -92,6 +92,7 @@
     }
 
     function findMatchingTickets(keyword) {
+        highlightMatchingRow(row);
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
 
@@ -114,7 +115,6 @@
             
             if (subjectText.includes(keyword)) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
-                highlightMatchingRow(row);
                 checkboxCell.checked = true;
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
