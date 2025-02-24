@@ -85,6 +85,11 @@
         }
     }
 
+    function highlightMatchingRow(row) {
+        row.style.transition = "background-color 0.5s ease";
+        row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+    }
+
     function findMatchingTickets(keyword) {
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
@@ -108,8 +113,7 @@
             
             if (subjectText.includes(keyword)) {
                 checkboxCell.checked = true;
-                row.style.transition = "background-color 0.5s ease";
-                row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+                highlightMatchingRow(row);
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
                     ticketTitles[ticketNumber] = subjectText;
