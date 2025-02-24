@@ -225,9 +225,23 @@
             }
         });
 
+        // Set the action type to "Closed"
+        let actionTypeDropdown = document.querySelector("#action_type");
+        if (actionTypeDropdown) {
+            actionTypeDropdown.value = "3"; // Set to "Closed"
+            console.log("Set action type to Closed.");
+        } else {
+            console.error("Could not find the action type dropdown.");
+        }
+
         // Simulate clicking the update button to close tickets
-        document.querySelector("#action_type").value = "3";
-        document.querySelector("#action_update").click();
+        let updateButton = document.querySelector("#action_update");
+        if (updateButton) {
+            console.log("Clicking the update button to close tickets.");
+            updateButton.click();
+        } else {
+            console.error("Could not find the update button.");
+        }
         setTimeout(() => location.reload(), 3000);
     }
 
@@ -247,7 +261,20 @@
             closeMatchingTickets();
         });
         document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
-            document.querySelector("#action_update").click();
+            let actionTypeDropdown = document.querySelector("#action_type");
+            if (actionTypeDropdown) {
+                actionTypeDropdown.value = "3"; // Set to "Closed"
+                console.log("Set action type to Closed.");
+            } else {
+                console.error("Could not find the action type dropdown.");
+            }
+            let updateButton = document.querySelector("#action_update");
+            if (updateButton) {
+                console.log("Clicking the update button to close tickets.");
+                updateButton.click();
+            } else {
+                console.error("Could not find the update button.");
+            }
             setTimeout(() => location.reload(), 3000);
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
