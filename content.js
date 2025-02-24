@@ -92,7 +92,7 @@
     }
 
     function findMatchingTickets(keyword) {
-        highlightMatchingRow(row);
+        
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
 
@@ -104,6 +104,7 @@
 
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row, index) => {
+            highlightMatchingRow(row);
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
             let subjectCell = row.querySelector("td:nth-child(3) a");
