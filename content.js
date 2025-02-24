@@ -114,8 +114,10 @@
             
             if (subjectText.includes(keyword)) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
-                highlightMatchingRow(row);
-                checkboxCell.checked = true;
+                setTimeout(() => {
+                    highlightMatchingRow(row);
+                    checkboxCell.checked = true;
+                }, 100); // Delay to ensure the highlight effect is visible
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
                     ticketTitles[ticketNumber] = subjectText;
