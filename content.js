@@ -11,7 +11,8 @@
   Displays a list of known tickets with their titles and an option to confirm closure.
   Adds rounded borders to buttons.
   Restores fading highlight effects for both checking and clearing tickets.
-  Highlights matching tickets in light orange.
+  Highlights matching tickets in light orange while keeping all functionality.
+  Fully restores ticket selection, storage, UI updates, and clearing functionality.
 */
 
 // content.js - Injected into Ubersmith
@@ -99,15 +100,29 @@
                     ticketTitles[ticketNumber] = subjectText;
                 }
             }
-
-            setTimeout(() => {
-                row.style.backgroundColor = "";
-            }, index * 100 + 800);
         });
 
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
         localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
         updateKnownTicketsUI();
+    }
+
+    function clearKnownTickets() {
+        localStorage.removeItem("knownTickets");
+        localStorage.removeItem("ticketTitles");
+        knownTickets = [];
+        ticketTitles = {};
+        updateKnownTicketsUI();
+
+        let ticketTableBody = document.querySelectorAll("tbody")[2];
+        if (!ticketTableBody) return;
+        
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach(row => {
+            row.style.backgroundColor = ""; // Remove highlights
+        });
+
+        alert("Known tickets cleared.");
     }
 
     setTimeout(() => {
