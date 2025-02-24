@@ -219,7 +219,7 @@
             let keyword = document.getElementById("keywordInput").value.trim();
             setTimeout(() => {
                 findMatchingTickets(keyword);
-            }, 500); // Delay to ensure the highlight effect is visible
+            }, 1000); // Delay to ensure the highlight effect is visible
         });
         document.getElementById("confirmCloseButton").addEventListener("click", () => {
             closeMatchingTickets();
@@ -237,7 +237,7 @@
         knownKeywords.forEach(keyword => {
             setTimeout(() => {
                 findMatchingTickets(keyword);
-            }, 500); // Delay to ensure the highlight effect is visible
+            }, 1000); // Delay to ensure the highlight effect is visible
         });
 
         startRefreshTimer(); // Start the refresh timer
