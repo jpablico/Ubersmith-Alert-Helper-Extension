@@ -96,12 +96,14 @@
         }
 
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach((row) => {
-            row.style.transition = "background-color 0.5s ease";
-            row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+        ticketRows.forEach((row, index) => {
             setTimeout(() => {
-                row.style.backgroundColor = ""; // Fade out
-            }, 1000); // Delay to start fading out
+                row.style.transition = "background-color 0.5s ease";
+                row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+                setTimeout(() => {
+                    row.style.backgroundColor = ""; // Fade out
+                }, 1000); // Delay to start fading out
+            }, index * 100); // Stagger the effect by 100ms for each row
         });
     }
 
@@ -242,5 +244,13 @@
         });
 
         startRefreshTimer(); // Start the refresh timer
+
+        // Run highlightAllRows and findMatchingTickets on page refresh
+        highlightAllRows();
+        setTimeout(() => {
+            knownKeywords.forEach(keyword => {
+                findMatchingTickets(keyword);
+            });
+        }, 500); // Delay to ensure the highlight effect is visible
     }, 1000);
 })();
