@@ -8,6 +8,7 @@
   Allows clearing known tickets from storage.
   Moves the UI to the bottom of the "panel-drawer-content" class, ensuring it takes up the space.
   Separates functionality into different buttons.
+  Displays a list of known tickets with an option to confirm closure.
 */
 
 // content.js - Injected into Ubersmith
@@ -38,11 +39,29 @@
             <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc;">
             <button id="queryTicketsButton" style="padding: 10px; background: #007BFF; color: white; border: none; cursor: pointer;">Find Matching Tickets</button>
+            <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto;"></div>
+            <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer;">Confirm Closure</button>
             <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer;">Close Matching Tickets</button>
             <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer;">Clear Known Tickets</button>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
         panelDrawer.appendChild(uiContainer);
+
+        updateKnownTicketsUI();
+    }
+
+    function updateKnownTicketsUI() {
+        let knownTicketsList = document.getElementById("knownTicketsList");
+        knownTicketsList.innerHTML = "<strong>Known Tickets:</strong><br>";
+        if (knownTickets.length === 0) {
+            knownTicketsList.innerHTML += "No known tickets.";
+        } else {
+            knownTickets.forEach(ticket => {
+                let item = document.createElement("div");
+                item.innerText = `#${ticket}`;
+                knownTicketsList.appendChild(item);
+            });
+        }
     }
 
     function findMatchingTickets(keyword) {
@@ -69,7 +88,7 @@
             let ticketNumber = ticketNumberCell.innerText.trim();
             
             if (subjectText.includes(keyword) || knownTickets.includes(ticketNumber)) {
-                matchingTickets.push({ checkbox: checkboxCell, ticketNumber, subjectText });
+                matchingTickets.push(ticketNumber);
                 row.style.backgroundColor = "#ff6666";
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
@@ -78,6 +97,7 @@
         });
 
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
+        updateKnownTicketsUI();
     }
 
     function closeMatchingTickets() {
@@ -92,12 +112,6 @@
                 checkboxCell.checked = true;
             }
         });
-
-        let submitButton = document.querySelector("#action_update");
-        if (submitButton) {
-            submitButton.click();
-            setTimeout(() => location.reload(), 3000);
-        }
     }
 
     function startRefreshTimer() {
@@ -121,12 +135,17 @@
             let keyword = document.getElementById("keywordInput").value.trim();
             findMatchingTickets(keyword);
         });
-        document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
+        document.getElementById("confirmCloseButton").addEventListener("click", () => {
             closeMatchingTickets();
+        });
+        document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
+            document.querySelector("#action_update").click();
+            setTimeout(() => location.reload(), 3000);
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
             localStorage.removeItem("knownTickets");
             knownTickets = [];
+            updateKnownTicketsUI();
             alert("Known tickets cleared.");
         });
     }, 1000);
