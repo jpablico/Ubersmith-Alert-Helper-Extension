@@ -85,10 +85,21 @@
         }
     }
 
-    function highlightMatchingRow(row) {
-        console.log("Highlighting row:", row);
-        row.style.transition = "background-color 0.5s ease";
-        row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+    function highlightMatchingRow() {
+        let tbodies = document.querySelectorAll("tbody");
+        let ticketTableBody = tbodies[2];
+
+        if (!ticketTableBody) {
+            console.error("Could not find tbody[2].");
+            alert("Could not find the correct ticket list.");
+            return;
+        }
+
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach((row) => {
+            row.style.transition = "background-color 0.5s ease";
+            row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
+        });
     }
 
     function findMatchingTickets(keyword) {
@@ -144,6 +155,10 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach(row => {
             row.style.backgroundColor = ""; // Remove highlights
+            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            if (checkboxCell) {
+                checkboxCell.checked = false; // Uncheck the checkbox
+            }
         });
 
         alert("Known tickets cleared.");
