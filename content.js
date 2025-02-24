@@ -10,8 +10,7 @@
   Separates functionality into different buttons.
   Displays a list of known tickets with their titles and an option to confirm closure.
   Adds rounded borders to buttons.
-  Adds a fading highlight effect while checking and clearing tickets.
-  Fixes issue where searching for matching tickets does not select them.
+  Restores fading highlight effects for both checking and clearing tickets.
 */
 
 // content.js - Injected into Ubersmith
@@ -69,6 +68,19 @@
         }
     }
 
+    function fadeEffect(rows, color) {
+        rows.forEach((row, index) => {
+            setTimeout(() => {
+                row.style.transition = "background-color 0.5s ease";
+                row.style.backgroundColor = color;
+            }, index * 100);
+            
+            setTimeout(() => {
+                row.style.backgroundColor = "";
+            }, index * 100 + 800);
+        });
+    }
+
     function findMatchingTickets(keyword) {
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
@@ -80,28 +92,23 @@
         }
 
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach(row => {
-            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
-            let ticketNumberCell = row.querySelector("td:nth-child(2)");
-            let subjectCell = row.querySelector("td:nth-child(3) a");
-            
-            if (!checkboxCell || !subjectCell || !ticketNumberCell) return;
-            
-            let subjectText = subjectCell.innerText.trim();
-            let ticketNumber = ticketNumberCell.innerText.trim();
-            
-            if (subjectText.includes(keyword)) {
-                checkboxCell.checked = true;
-                row.style.transition = "background-color 0.5s ease";
-                row.style.backgroundColor = "#ffff99"; // Yellow highlight while checking
-                knownTickets.push(ticketNumber);
-                ticketTitles[ticketNumber] = subjectText;
-            }
-        });
+        fadeEffect(ticketRows, "#ffff99"); // Yellow highlight while checking
+    }
 
-        localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
-        localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
+    function clearKnownTickets() {
+        localStorage.removeItem("knownTickets");
+        localStorage.removeItem("ticketTitles");
+        knownTickets = [];
+        ticketTitles = {};
         updateKnownTicketsUI();
+
+        let ticketTableBody = document.querySelectorAll("tbody")[2];
+        if (!ticketTableBody) return;
+        
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        fadeEffect(ticketRows, "#ff6666"); // Red highlight while clearing
+
+        alert("Known tickets cleared.");
     }
 
     setTimeout(() => {
