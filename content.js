@@ -4,15 +4,20 @@
   Also finds and closes matching "Problem:" and "Resolved:" tickets.
   Displays a UI list of tickets to be closed before confirming.
   Auto refreshes the extension periodically with a visual countdown timer.
+  Stores known tickets for automatic closure after refresh.
+  Allows clearing known tickets from storage.
 */
 
 // content.js - Injected into Ubersmith
 (function() {
     console.log("Ubersmith Auto Ticket Closer extension loaded successfully.");
 
+    let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
+
     // Ensure UI elements always exist
     let existingInput = document.getElementById("keywordInput");
     let existingButton = document.getElementById("autoCloseButton");
+    let existingClearButton = document.getElementById("clearKnownTicketsButton");
     let existingTimer = document.getElementById("refreshTimer");
 
     if (!existingInput) {
@@ -21,7 +26,7 @@
         keywordInput.type = "text";
         keywordInput.placeholder = "Enter keyword to close tickets";
         keywordInput.style.position = "fixed";
-        keywordInput.style.bottom = "100px";
+        keywordInput.style.bottom = "140px";
         keywordInput.style.left = "20px";
         keywordInput.style.padding = "5px";
         keywordInput.style.border = "1px solid #ccc";
@@ -33,7 +38,7 @@
         autoCloseButton.id = "autoCloseButton";
         autoCloseButton.innerText = "Close Matching Tickets";
         autoCloseButton.style.position = "fixed";
-        autoCloseButton.style.bottom = "60px";
+        autoCloseButton.style.bottom = "100px";
         autoCloseButton.style.left = "20px";
         autoCloseButton.style.backgroundColor = "#FF5733";
         autoCloseButton.style.color = "white";
@@ -45,6 +50,27 @@
         autoCloseButton.addEventListener("click", () => {
             let keyword = document.getElementById("keywordInput").value.trim();
             closeMatchingTickets(keyword);
+        });
+    }
+
+    if (!existingClearButton) {
+        let clearKnownTicketsButton = document.createElement("button");
+        clearKnownTicketsButton.id = "clearKnownTicketsButton";
+        clearKnownTicketsButton.innerText = "Clear Known Tickets";
+        clearKnownTicketsButton.style.position = "fixed";
+        clearKnownTicketsButton.style.bottom = "60px";
+        clearKnownTicketsButton.style.left = "20px";
+        clearKnownTicketsButton.style.backgroundColor = "#555";
+        clearKnownTicketsButton.style.color = "white";
+        clearKnownTicketsButton.style.padding = "10px";
+        clearKnownTicketsButton.style.border = "none";
+        clearKnownTicketsButton.style.cursor = "pointer";
+        document.body.appendChild(clearKnownTicketsButton);
+
+        clearKnownTicketsButton.addEventListener("click", () => {
+            localStorage.removeItem("knownTickets");
+            knownTickets = [];
+            alert("Known tickets cleared.");
         });
     }
 
@@ -86,85 +112,16 @@
             let subjectText = subjectCell.innerText.trim();
             let ticketNumber = ticketNumberCell.innerText.trim();
             
-            if (subjectText.includes(keyword)) {
+            if (subjectText.includes(keyword) || knownTickets.includes(ticketNumber)) {
                 matchingTickets.push({ checkbox: checkboxCell, ticketNumber, subjectText });
                 row.style.backgroundColor = "#ff6666";
+                if (!knownTickets.includes(ticketNumber)) {
+                    knownTickets.push(ticketNumber);
+                }
             }
         });
 
-        if (matchingTickets.length === 0) {
-            alert("No matching tickets found.");
-            return;
-        }
-
-        // Confirmation List UI
-        let existingContainer = document.getElementById("ticketListContainer");
-        if (existingContainer) {
-            existingContainer.remove();
-        }
-
-        let ticketListContainer = document.createElement("div");
-        ticketListContainer.id = "ticketListContainer";
-        ticketListContainer.style.position = "fixed";
-        ticketListContainer.style.top = "20px";
-        ticketListContainer.style.left = "20px";
-        ticketListContainer.style.width = "350px";
-        ticketListContainer.style.maxHeight = "500px";
-        ticketListContainer.style.overflowY = "auto";
-        ticketListContainer.style.backgroundColor = "white";
-        ticketListContainer.style.border = "1px solid #ccc";
-        ticketListContainer.style.padding = "15px";
-        ticketListContainer.style.zIndex = "1000";
-        ticketListContainer.style.boxShadow = "2px 2px 10px rgba(0, 0, 0, 0.1)";
-
-        let title = document.createElement("h3");
-        title.innerText = "Tickets to be closed:";
-        ticketListContainer.appendChild(title);
-
-        let ticketList = document.createElement("ul");
-        matchingTickets.forEach(ticket => {
-            let listItem = document.createElement("li");
-            listItem.innerText = `#${ticket.ticketNumber}: ${ticket.subjectText}`;
-            ticketList.appendChild(listItem);
-        });
-        ticketListContainer.appendChild(ticketList);
-
-        let confirmButton = document.createElement("button");
-        confirmButton.innerText = "Confirm Close";
-        confirmButton.style.marginTop = "10px";
-        confirmButton.style.backgroundColor = "#FF5733";
-        confirmButton.style.color = "white";
-        confirmButton.style.padding = "5px";
-        confirmButton.style.border = "none";
-        confirmButton.style.cursor = "pointer";
-        confirmButton.onclick = () => {
-            matchingTickets.forEach(ticket => ticket.checkbox.checked = true);
-
-            let actionDropdown = document.querySelector("#action_type");
-            if (!actionDropdown) {
-                console.error("Action dropdown not found!");
-                alert("Could not find bulk action dropdown. Please check page structure.");
-                return;
-            }
-            actionDropdown.value = "3";
-
-            let submitButton = document.querySelector("#action_update");
-            if (!submitButton) {
-                console.error("Submit button not found!");
-                alert("Could not find submit button.");
-                return;
-            }
-
-            console.log("Closing tickets...");
-            submitButton.click();
-
-            setTimeout(() => {
-                location.reload();
-            }, 3000);
-        };
-
-        ticketListContainer.appendChild(confirmButton);
-        document.body.appendChild(ticketListContainer);
+        localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
     }
 
     function startRefreshTimer() {
