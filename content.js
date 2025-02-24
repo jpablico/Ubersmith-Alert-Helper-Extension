@@ -226,6 +226,7 @@
         });
 
         // Simulate clicking the update button to close tickets
+        document.querySelector("#action_type").value = "3";
         document.querySelector("#action_update").click();
         setTimeout(() => location.reload(), 3000);
     }
