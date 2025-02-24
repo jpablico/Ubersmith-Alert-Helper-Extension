@@ -43,6 +43,9 @@
             <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="queryTicketsButton" style="padding: 10px; background:rgb(87, 168, 254); color: white; border: none; cursor: pointer; border-radius: 8px;">Find Matching Tickets</button>
+            <input id="newKeywordInput" type="text" placeholder="Enter new keyword" 
+                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
             <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
             <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
             <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
@@ -102,7 +105,7 @@
                 row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
                     row.style.backgroundColor = ""; // Fade out
-                }, 1000); // Delay to start fading out
+                }, 600); // Delay to start fading out
             }, index * 100); // Stagger the effect by 100ms for each row
         });
     }
@@ -145,6 +148,17 @@
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
         localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
         updateKnownTicketsUI();
+    }
+
+    function addKeyword() {
+        let newKeywordInput = document.getElementById("newKeywordInput");
+        let newKeyword = newKeywordInput.value.trim();
+        if (newKeyword && !knownKeywords.includes(newKeyword)) {
+            knownKeywords.push(newKeyword);
+            localStorage.setItem("knownKeywords", JSON.stringify(knownKeywords));
+            updateKnownKeywordsUI();
+            newKeywordInput.value = ""; // Clear the input field
+        }
     }
 
     function clearKnownTickets() {
@@ -225,6 +239,9 @@
             setTimeout(() => {
                 findMatchingTickets(keyword);
             }, 500); // Delay to ensure the highlight effect is visible
+        });
+        document.getElementById("addKeywordButton").addEventListener("click", () => {
+            addKeyword();
         });
         document.getElementById("confirmCloseButton").addEventListener("click", () => {
             closeMatchingTickets();
