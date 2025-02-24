@@ -86,6 +86,7 @@
     }
 
     function highlightMatchingRow(row) {
+        console.log("Highlighting row:", row);
         row.style.transition = "background-color 0.5s ease";
         row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
     }
@@ -112,8 +113,9 @@
             let ticketNumber = ticketNumberCell.innerText.trim();
             
             if (subjectText.includes(keyword)) {
-                checkboxCell.checked = true;
+                console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 highlightMatchingRow(row);
+                checkboxCell.checked = true;
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
                     ticketTitles[ticketNumber] = subjectText;
