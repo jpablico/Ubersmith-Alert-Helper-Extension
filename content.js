@@ -8,7 +8,7 @@
   Allows clearing known tickets from storage.
   Moves the UI to the bottom of the "panel-drawer-content" class, ensuring it takes up the space.
   Separates functionality into different buttons.
-  Displays a list of known tickets with an option to confirm closure.
+  Displays a list of known tickets with their titles and an option to confirm closure.
   Adds rounded borders to buttons.
   Adds a fading highlight effect while checking tickets.
 */
@@ -18,6 +18,7 @@
     console.log("Ubersmith Auto Ticket Closer extension loaded successfully.");
 
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
+    let ticketTitles = JSON.parse(localStorage.getItem("ticketTitles")) || {}; // Store ticket titles
 
     function createUI() {
         let panelDrawer = document.querySelector(".panel-drawer-content");
@@ -60,7 +61,8 @@
         } else {
             knownTickets.forEach(ticket => {
                 let item = document.createElement("div");
-                item.innerText = `#${ticket}`;
+                let title = ticketTitles[ticket] ? ` - ${ticketTitles[ticket]}` : "";
+                item.innerText = `#${ticket}${title}`;
                 knownTicketsList.appendChild(item);
             });
         }
@@ -79,16 +81,7 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         let matchingTickets = [];
         
-        ticketRows.forEach((row, index) => {
-            setTimeout(() => {
-                row.style.transition = "background-color 0.5s ease";
-                row.style.backgroundColor = "#ffff99"; // Highlight in yellow
-            }, index * 100);
-            
-            setTimeout(() => {
-                row.style.backgroundColor = ""; // Fade back to normal
-            }, index * 100 + 800);
-
+        ticketRows.forEach(row => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
             let subjectCell = row.querySelector("td:nth-child(3) a");
@@ -100,6 +93,7 @@
             
             if (subjectText.includes(keyword) || knownTickets.includes(ticketNumber)) {
                 matchingTickets.push(ticketNumber);
+                ticketTitles[ticketNumber] = subjectText; // Store title
                 row.style.backgroundColor = "#ff6666";
                 if (!knownTickets.includes(ticketNumber)) {
                     knownTickets.push(ticketNumber);
@@ -108,6 +102,7 @@
         });
 
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
+        localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
         updateKnownTicketsUI();
     }
 
@@ -126,7 +121,9 @@
         });
         document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
             localStorage.removeItem("knownTickets");
+            localStorage.removeItem("ticketTitles");
             knownTickets = [];
+            ticketTitles = {};
             updateKnownTicketsUI();
             alert("Known tickets cleared.");
         });
