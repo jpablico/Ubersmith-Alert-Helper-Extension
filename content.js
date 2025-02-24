@@ -112,10 +112,11 @@
             let subjectText = subjectCell.innerText.trim();
             let ticketNumber = ticketNumberCell.innerText.trim();
             
-            if (subjectText.includes(keyword)) {
+            if (keyword && subjectText.includes(keyword)) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
+                row.style.transition = "background-color 0.5s ease";
+                row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
-                    highlightMatchingRow(row);
                     checkboxCell.checked = true;
                 }, 100); // Delay to ensure the highlight effect is visible
                 if (!knownTickets.includes(ticketNumber)) {
