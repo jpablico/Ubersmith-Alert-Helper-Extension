@@ -1,4 +1,4 @@
-# Ubersmith
+# Ubersmith Auto Closer and keyword Matcher.
 
 A basic google extension for Ubersmith. 
 
