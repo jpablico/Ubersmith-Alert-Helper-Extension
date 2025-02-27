@@ -9,6 +9,7 @@
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
     let ticketTitles = JSON.parse(localStorage.getItem("ticketTitles")) || {}; // Store ticket titles
     let knownKeywords = JSON.parse(localStorage.getItem("knownKeywords")) || []; // Store known keywords
+    let confirmClosureClicked = false; // Flag to check if confirm closure button was clicked
 
     function createUI() {
         let panelDrawer = document.querySelector(".panel-drawer-content");
@@ -35,17 +36,16 @@
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
             <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-            <div id="knownTicketsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-            <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
-            <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
-            <button id="clearKnownTicketsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Tickets</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
+                <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
+            </div>
             <button id="clearKnownKeywordsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Keywords</button>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
         panelDrawer.appendChild(uiContainer);
 
         updateKnownKeywordsUI();
-        updateKnownTicketsUI();
     }
 
     function updateKnownKeywordsUI() {
@@ -58,21 +58,6 @@
                 let item = document.createElement("div");
                 item.innerText = keyword;
                 knownKeywordsList.appendChild(item);
-            });
-        }
-    }
-
-    function updateKnownTicketsUI() {
-        let knownTicketsList = document.getElementById("knownTicketsList");
-        knownTicketsList.innerHTML = "<strong>Known Tickets:</strong><br>";
-        if (knownTickets.length === 0) {
-            knownTicketsList.innerHTML += "No known tickets.";
-        } else {
-            knownTickets.forEach(ticket => {
-                let item = document.createElement("div");
-                let title = ticketTitles[ticket] ? ` - ${ticketTitles[ticket]}` : "";
-                item.innerText = `#${ticket}${title}`;
-                knownTicketsList.appendChild(item);
             });
         }
     }
@@ -136,7 +121,6 @@
 
         localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
         localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
-        updateKnownTicketsUI();
     }
 
     function addKeyword() {
@@ -148,28 +132,6 @@
             updateKnownKeywordsUI();
             newKeywordInput.value = ""; // Clear the input field
         }
-    }
-
-    function clearKnownTickets() {
-        localStorage.removeItem("knownTickets");
-        localStorage.removeItem("ticketTitles");
-        knownTickets = [];
-        ticketTitles = {};
-        updateKnownTicketsUI();
-
-        let ticketTableBody = document.querySelectorAll("tbody")[2];
-        if (!ticketTableBody) return;
-        
-        let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach(row => {
-            row.style.backgroundColor = ""; // Remove highlights
-            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
-            if (checkboxCell) {
-                checkboxCell.checked = false; // Uncheck the checkbox
-            }
-        });
-
-        alert("Known tickets cleared.");
     }
 
     function clearKnownKeywords() {
@@ -197,6 +159,11 @@
     }
 
     function closeMatchingTickets() {
+        if (!confirmClosureClicked) {
+            console.log("Confirm closure button was not clicked. Aborting closeMatchingTickets.");
+            return;
+        }
+
         let tbodies = document.querySelectorAll("tbody");
         let ticketTableBody = tbodies[2];
 
@@ -240,7 +207,9 @@
         }
 
         // Clear known tickets after closing them
-        clearKnownTickets();
+        knownTickets = [];
+        localStorage.removeItem("knownTickets");
+        localStorage.removeItem("ticketTitles");
 
         setTimeout(() => location.reload(), 3000);
     }
@@ -258,27 +227,29 @@
             addKeyword();
         });
         document.getElementById("confirmCloseButton").addEventListener("click", () => {
+            confirmClosureClicked = true;
             closeMatchingTickets();
         });
         document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
-            let actionTypeDropdown = document.querySelector("#action_type");
-            if (actionTypeDropdown) {
-                actionTypeDropdown.value = "3"; // Set to "Closed"
-                console.log("Set action type to Closed.");
+            if (confirmClosureClicked) {
+                let actionTypeDropdown = document.querySelector("#action_type");
+                if (actionTypeDropdown) {
+                    actionTypeDropdown.value = "3"; // Set to "Closed"
+                    console.log("Set action type to Closed.");
+                } else {
+                    console.error("Could not find the action type dropdown.");
+                }
+                let updateButton = document.querySelector("#action_update");
+                if (updateButton) {
+                    console.log("Clicking the update button to close tickets.");
+                    updateButton.click();
+                } else {
+                    console.error("Could not find the update button.");
+                }
+                setTimeout(() => location.reload(), 3000);
             } else {
-                console.error("Could not find the action type dropdown.");
+                console.log("Confirm closure button was not clicked. Aborting closeMatchingTickets.");
             }
-            let updateButton = document.querySelector("#action_update");
-            if (updateButton) {
-                console.log("Clicking the update button to close tickets.");
-                updateButton.click();
-            } else {
-                console.error("Could not find the update button.");
-            }
-            setTimeout(() => location.reload(), 3000);
-        });
-        document.getElementById("clearKnownTicketsButton").addEventListener("click", () => {
-            clearKnownTickets();
         });
         document.getElementById("clearKnownKeywordsButton").addEventListener("click", () => {
             clearKnownKeywords();
