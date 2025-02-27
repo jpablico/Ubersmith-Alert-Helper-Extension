@@ -72,7 +72,7 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row, index) => {
             setTimeout(() => {
-                row.style.transition = "background-color 0.2s ease";
+                row.style.transition = "background-color 0.4s ease";
                 row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
                     row.style.backgroundColor = ""; // Fade out
