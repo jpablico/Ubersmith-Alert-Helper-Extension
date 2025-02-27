@@ -75,11 +75,11 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row, index) => {
             setTimeout(() => {
-                row.style.transition = "background-color 0.5s ease";
+                row.style.transition = "background-color 0.7s ease";
                 row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
                     row.style.backgroundColor = ""; // Fade out
-                }, 300); // Delay to start fading out
+                }, 700); // Delay to start fading out
             }, index * 100); // Stagger the effect by 100ms for each row
         });
     }
