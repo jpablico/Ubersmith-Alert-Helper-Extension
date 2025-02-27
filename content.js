@@ -218,7 +218,7 @@
             highlightAllRows();
             setTimeout(() => {
                 findMatchingTickets(keyword);
-            }, 500); // Delay to ensure the highlight effect is visible
+            }, 800); // Delay to ensure the highlight effect is visible
         });
         document.getElementById("addKeywordButton").addEventListener("click", () => {
             addKeyword();
