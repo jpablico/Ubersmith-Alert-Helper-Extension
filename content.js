@@ -36,10 +36,7 @@
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
             <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-            <div style="display: flex; gap: 10px;">
-                <button id="confirmCloseButton" style="padding: 10px; background: #FFAA33; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
-                <button id="closeMatchingTicketsButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Close Matching Tickets</button>
-            </div>
+            <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
             <button id="clearKnownKeywordsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Keywords</button>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
         `;
@@ -75,11 +72,11 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row, index) => {
             setTimeout(() => {
-                row.style.transition = "background-color 0.7s ease";
+                row.style.transition = "background-color 0.2s ease";
                 row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
                     row.style.backgroundColor = ""; // Fade out
-                }, 700); // Delay to start fading out
+                }, 300); // Delay to start fading out
             }, index * 100); // Stagger the effect by 100ms for each row
         });
     }
@@ -229,27 +226,6 @@
         document.getElementById("confirmCloseButton").addEventListener("click", () => {
             confirmClosureClicked = true;
             closeMatchingTickets();
-        });
-        document.getElementById("closeMatchingTicketsButton").addEventListener("click", () => {
-            if (confirmClosureClicked) {
-                let actionTypeDropdown = document.querySelector("#action_type");
-                if (actionTypeDropdown) {
-                    actionTypeDropdown.value = "3"; // Set to "Closed"
-                    console.log("Set action type to Closed.");
-                } else {
-                    console.error("Could not find the action type dropdown.");
-                }
-                let updateButton = document.querySelector("#action_update");
-                if (updateButton) {
-                    console.log("Clicking the update button to close tickets.");
-                    updateButton.click();
-                } else {
-                    console.error("Could not find the update button.");
-                }
-                setTimeout(() => location.reload(), 3000);
-            } else {
-                console.log("Confirm closure button was not clicked. Aborting closeMatchingTickets.");
-            }
         });
         document.getElementById("clearKnownKeywordsButton").addEventListener("click", () => {
             clearKnownKeywords();
