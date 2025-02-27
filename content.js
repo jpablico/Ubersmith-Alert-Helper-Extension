@@ -76,7 +76,7 @@
                 row.style.backgroundColor = "#FFCC80"; // Light orange highlight for matching tickets
                 setTimeout(() => {
                     row.style.backgroundColor = ""; // Fade out
-                }, 300); // Delay to start fading out
+                }, 500); // Delay to start fading out
             }, index * 100); // Stagger the effect by 100ms for each row
         });
     }
