@@ -37,6 +37,23 @@
         uiContainer.innerHTML = `
             <input id="keywordInput" type="text" placeholder="Enter keyword to search tickets" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+            <div id="advancedSearchOptions" style="background: white; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px; text-align: left;">
+                <div style="font-weight: bold; margin-bottom: 5px;">Advanced Search Options:</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="searchInSubject" checked>
+                        <label for="searchInSubject">Subject</label>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="searchInDescription">
+                        <label for="searchInDescription">Description</label>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="searchCaseSensitive">
+                        <label for="searchCaseSensitive">Case Sensitive</label>
+                    </div>
+                </div>
+            </div>
             <button id="queryTicketsButton" style="padding: 10px; background:rgb(87, 168, 254); color: white; border: none; cursor: pointer; border-radius: 8px;">Find Matching Tickets</button>
             <input id="newKeywordInput" type="text" placeholder="Enter new keyword" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
@@ -50,6 +67,51 @@
                 <button id="applyRefreshInterval" style="padding: 5px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Apply</button>
             </div>
             <span id="refreshTimer" style="margin-top: 10px; font-weight: bold;">Next refresh in: 5:00</span>
+            <div id="ticketStatistics" style="background: #f8f8f8; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Ticket Statistics</h3>
+                <div style="display: flex; justify-content: space-between;">
+                    <div>Found tickets: <span id="foundTicketsCount">0</span></div>
+                    <div>Selected tickets: <span id="selectedTicketsCount">0</span></div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                <button id="selectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Select All</button>
+                <button id="deselectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Deselect All</button>
+            </div>
+            <div style="background: white; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">Recent Searches:</div>
+                <div id="searchHistoryList"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="saveConfigButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Save Config</button>
+                <button id="loadConfigButton" style="padding: 10px; background: #2196F3; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Load Config</button>
+            </div>
+            <div id="ticketPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; background: white; padding: 20px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <h3 id="previewTicketTitle" style="margin: 0;">Ticket Preview</h3>
+                        <button id="closePreviewModal" style="background: none; border: none; font-size: 18px; cursor: pointer;">×</button>
+                    </div>
+                    <div id="previewTicketContent"></div>
+                </div>
+            </div>
+            <div style="background: white; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px; text-align: left;">
+                <div style="font-weight: bold; margin-bottom: 5px;">Filter by status:</div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center;">
+                        <input type="checkbox" id="filterOpen" checked>
+                        <span>Open</span>
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="checkbox" id="filterPending">
+                        <span>Pending</span>
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="checkbox" id="filterClosed">
+                        <span>Closed</span>
+                    </label>
+                </div>
+            </div>
         `;
         panelDrawer.appendChild(uiContainer);
 
@@ -288,6 +350,94 @@
         setTimeout(() => location.reload(), 3000);
     }
 
+    function updateSearchHistory() {
+        const searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+        let historyList = document.getElementById("searchHistoryList");
+        
+        historyList.innerHTML = "";
+        searchHistory.slice(-5).forEach(item => {
+            const historyItem = document.createElement("div");
+            historyItem.style.display = "flex";
+            historyItem.style.justifyContent = "space-between";
+            historyItem.style.padding = "5px 0";
+            historyItem.style.borderBottom = "1px solid #eee";
+            
+            const keywordSpan = document.createElement("span");
+            keywordSpan.innerText = item.keyword;
+            keywordSpan.style.cursor = "pointer";
+            keywordSpan.onclick = () => {
+                document.getElementById("keywordInput").value = item.keyword;
+            };
+            
+            const dateSpan = document.createElement("span");
+            dateSpan.innerText = new Date(item.date).toLocaleString();
+            dateSpan.style.fontSize = "0.8em";
+            dateSpan.style.color = "#888";
+            
+            historyItem.appendChild(keywordSpan);
+            historyItem.appendChild(dateSpan);
+            historyList.appendChild(historyItem);
+        });
+    }
+
+    function showTicketPreview(ticketNumber, title, content) {
+        document.getElementById("previewTicketTitle").innerText = `Ticket #${ticketNumber}: ${title}`;
+        document.getElementById("previewTicketContent").innerHTML = content;
+        document.getElementById("ticketPreviewModal").style.display = "block";
+        
+        document.getElementById("closePreviewModal").onclick = () => {
+            document.getElementById("ticketPreviewModal").style.display = "none";
+        };
+    }
+
+    // Add this function
+    function showNotification(message, type = "info") {
+        const notification = document.createElement("div");
+        notification.style.position = "fixed";
+        notification.style.bottom = "20px";
+        notification.style.right = "20px";
+        notification.style.padding = "15px 20px";
+        notification.style.borderRadius = "8px";
+        notification.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+        notification.style.zIndex = "1000";
+        notification.style.opacity = "0";
+        notification.style.transition = "opacity 0.3s";
+        
+        switch (type) {
+            case "success":
+                notification.style.background = "#4CAF50";
+                notification.style.color = "white";
+                break;
+            case "error":
+                notification.style.background = "#f44336";
+                notification.style.color = "white";
+                break;
+            case "warning":
+                notification.style.background = "#ff9800";
+                notification.style.color = "white";
+                break;
+            default:
+                notification.style.background = "#2196F3";
+                notification.style.color = "white";
+        }
+        
+        notification.innerText = message;
+        document.body.appendChild(notification);
+        
+        // Fade in
+        setTimeout(() => {
+            notification.style.opacity = "1";
+        }, 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.opacity = "0";
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
     setTimeout(() => {
         createUI();
         
@@ -297,6 +447,17 @@
                 alert("Please enter a keyword to search.");
                 return;
             }
+            
+            // Add to search history
+            const searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+            searchHistory.push({
+                keyword: keyword,
+                date: new Date().toISOString()
+            });
+            if (searchHistory.length > 10) searchHistory.shift(); // Keep only 10 most recent
+            localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+            updateSearchHistory();
+            
             highlightAllRows();
             setTimeout(() => {
                 findMatchingTickets(keyword);
@@ -340,6 +501,32 @@
             const minutes = parseInt(document.getElementById("refreshInterval").value) || 5;
             localStorage.setItem("refreshInterval", minutes);
             startRefreshTimer();
+        });
+
+        document.getElementById("selectAllButton").addEventListener("click", () => {
+            let ticketTableBody = findTicketTable();
+            if (!ticketTableBody) return;
+            
+            let ticketRows = ticketTableBody.querySelectorAll("tr");
+            ticketRows.forEach(row => {
+                let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+                if (checkboxCell) checkboxCell.checked = true;
+            });
+            
+            showNotification("All tickets selected", "info");
+        });
+
+        document.getElementById("deselectAllButton").addEventListener("click", () => {
+            let ticketTableBody = findTicketTable();
+            if (!ticketTableBody) return;
+            
+            let ticketRows = ticketTableBody.querySelectorAll("tr");
+            ticketRows.forEach(row => {
+                let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+                if (checkboxCell) checkboxCell.checked = false;
+            });
+            
+            showNotification("All tickets deselected", "info");
         });
 
         // Automatically search for known keywords
