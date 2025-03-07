@@ -283,15 +283,21 @@
             console.log("Confirm closure button was not clicked. Aborting closeMatchingTickets.");
             return;
         }
-
-        confirmClosureClicked = false;
-
+    
+        confirmClosureClicked = false; // Reset the flag
+    
         // Select all the checkboxes for our tracked tickets
         let ticketTableBody = findTicketTable();
-        if (!ticketTableBody) return;
-        
+        if (!ticketTableBody) {
+            console.error("Could not find ticket table.");
+            alert("Could not find the correct ticket list.");
+            return;
+        }
+    
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach((row) => {
+        let selectedCount = 0;
+        
+        ticketRows.forEach(row => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
             
@@ -300,10 +306,12 @@
             let ticketNumber = ticketNumberCell.innerText.trim();
             if (knownTickets.includes(ticketNumber)) {
                 checkboxCell.checked = true;
+                selectedCount++;
             }
         });
         
-        // After selecting checkboxes, find and set action dropdowns
+        console.log(`Selected ${selectedCount} tickets for closure`);
+        
         let actionSelectDropdown = document.querySelector("select[name='action_select']");
         if (!actionSelectDropdown) {
             console.error("Could not find action_select dropdown");
@@ -311,10 +319,9 @@
             return;
         }
         
+        console.log("Setting action_select to 'status'");
         actionSelectDropdown.value = "status";
         actionSelectDropdown.dispatchEvent(new Event('change', { bubbles: true }));
-        
-        console.log("Setting up to search for action_update button...");
         
         setTimeout(() => {
             let actionTypeDropdown = document.querySelector("select[name='action_type']");
@@ -324,20 +331,14 @@
                 return;
             }
             
-            actionTypeDropdown.value = "3";
+            console.log("Setting action_type to '3' (Closed)");
+            actionTypeDropdown.value = "3"; // Value for "Closed" based on the HTML
             actionTypeDropdown.dispatchEvent(new Event('change', { bubbles: true }));
-
-            let attempts = 0;
-            const maxAttempts = 5;
             
-            function findAndClickActionUpdate() {
-                attempts++;
-                console.log(`Looking for #action_update (attempt ${attempts}/${maxAttempts})`);
-                
-                let updateButton = document.querySelector("#action_update");
-                
+            setTimeout(() => {
+                let updateButton = document.querySelector("input#action_update[value='Update']");
                 if (updateButton) {
-                    console.log("Found #action_update button:", updateButton);
+                    console.log("Clicking the Update button");
                     updateButton.click();
                     
                     // Clear known tickets
@@ -345,32 +346,16 @@
                     localStorage.removeItem("knownTickets");
                     localStorage.removeItem("ticketTitles");
                     
-                    setTimeout(() => location.reload(), 3000);
-                } else if (attempts < maxAttempts) {
-                    // Not found yet, retry after a delay
-                    console.log("Button not found yet, retrying...");
-                    setTimeout(findAndClickActionUpdate, 500);
-                } else {
-                    // We've tried enough times, submit the form directly as fallback
-                    console.error("Could not find #action_update button after multiple attempts");
+                    console.log("Tickets have been closed!");
                     
-                    const form = document.querySelector("form#list");
-                    if (form) {
-                        console.log("Submitting form directly as fallback");
-                        form.submit();
-                        
-                        knownTickets = [];
-                        localStorage.removeItem("knownTickets");
-                        localStorage.removeItem("ticketTitles");
-                        
-                        setTimeout(() => location.reload(), 3000);
-                    } else {
-                        alert("Could not find the Update button or form. Please click it manually.");
-                    }
+                    // Reload the page after a short delay
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    console.error("Could not find the Update button");
+                    alert("Could not find the Update button. Please complete the action manually.");
                 }
-            }
-            setTimeout(findAndClickActionUpdate, 500);
-        }, 1000);
+            }, 500);
+        }, 500);
     }
 
     function selectAllTickets() {
