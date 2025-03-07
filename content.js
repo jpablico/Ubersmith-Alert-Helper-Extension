@@ -283,79 +283,53 @@
             console.log("Confirm closure button was not clicked. Aborting closeMatchingTickets.");
             return;
         }
-    
-        confirmClosureClicked = false; // Reset the flag
-    
-        // Select all the checkboxes for our tracked tickets
+
         let ticketTableBody = findTicketTable();
         if (!ticketTableBody) {
             console.error("Could not find ticket table.");
             alert("Could not find the correct ticket list.");
             return;
         }
-    
+
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        let selectedCount = 0;
-        
-        ticketRows.forEach(row => {
+        ticketRows.forEach((row, index) => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
+            let subjectCell = row.querySelector("td:nth-child(3) a");
             
-            if (!checkboxCell || !ticketNumberCell) return;
+            if (!checkboxCell || !subjectCell || !ticketNumberCell) return;
             
             let ticketNumber = ticketNumberCell.innerText.trim();
+            
             if (knownTickets.includes(ticketNumber)) {
                 checkboxCell.checked = true;
-                selectedCount++;
             }
         });
-        
-        console.log(`Selected ${selectedCount} tickets for closure`);
-        
-        let actionSelectDropdown = document.querySelector("select[name='action_select']");
-        if (!actionSelectDropdown) {
-            console.error("Could not find action_select dropdown");
-            alert("Could not find the action dropdown. Please close tickets manually.");
-            return;
+
+        // Set the action type to "Closed"
+        let actionTypeDropdown = document.querySelector("#action_type");
+        if (actionTypeDropdown) {
+            actionTypeDropdown.value = "3"; // Set to "Closed"
+            console.log("Set action type to Closed.");
+        } else {
+            console.error("Could not find the action type dropdown.");
         }
-        
-        console.log("Setting action_select to 'status'");
-        actionSelectDropdown.value = "status";
-        actionSelectDropdown.dispatchEvent(new Event('change', { bubbles: true }));
-        
-        setTimeout(() => {
-            let actionTypeDropdown = document.querySelector("select[name='action_type']");
-            if (!actionTypeDropdown) {
-                console.error("Could not find action_type dropdown");
-                alert("Could not find the status dropdown. Please close tickets manually.");
-                return;
-            }
-            
-            console.log("Setting action_type to '3' (Closed)");
-            actionTypeDropdown.value = "3"; // Value for "Closed" based on the HTML
-            actionTypeDropdown.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            setTimeout(() => {
-                let updateButton = document.querySelector("input#action_update[value='Update']");
-                if (updateButton) {
-                    console.log("Clicking the Update button");
-                    updateButton.click();
-                    
-                    // Clear known tickets
-                    knownTickets = [];
-                    localStorage.removeItem("knownTickets");
-                    localStorage.removeItem("ticketTitles");
-                    
-                    console.log("Tickets have been closed!");
-                    
-                    // Reload the page after a short delay
-                    setTimeout(() => location.reload(), 3000);
-                } else {
-                    console.error("Could not find the Update button");
-                    alert("Could not find the Update button. Please complete the action manually.");
-                }
-            }, 500);
-        }, 500);
+
+        // Simulate clicking the update button to close tickets
+        let updateButton = document.querySelector("#action_update");
+        if (updateButton) {
+            console.log("Clicking the update button to close tickets.");
+            updateButton.click();
+        } else {
+            console.error("Could not find the update button.");
+        }
+
+        // Clear known tickets after closing them
+        knownTickets = [];
+        localStorage.removeItem("knownTickets");
+        localStorage.removeItem("ticketTitles");
+
+        setTimeout(() => location.reload(), 3000);
     }
 
     function selectAllTickets() {
