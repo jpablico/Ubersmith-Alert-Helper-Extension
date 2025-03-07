@@ -284,10 +284,13 @@
             return;
         }
 
+        confirmClosureClicked = false;
+
         const selectedCloseAction = "3";
         const selectedCloseActionText = "Close";
         
         console.log(`Using action type: ${selectedCloseActionText} (${selectedCloseAction})`);
+        console.log(`Attempting to close ${ticketCount} tickets: ${knownTickets.join(', ')}`);
 
         let ticketTableBody = findTicketTable();
         if (!ticketTableBody) {
@@ -296,7 +299,9 @@
             return;
         }
 
+        // Select all the checkboxes for our tracked tickets
         let ticketRows = ticketTableBody.querySelectorAll("tr");
+        let checkedCount = 0;
         ticketRows.forEach((row) => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
@@ -307,8 +312,11 @@
             
             if (knownTickets.includes(ticketNumber)) {
                 checkboxCell.checked = true;
+                checkedCount++;
             }
         });
+        
+        console.log(`Selected ${checkedCount} checkboxes out of ${ticketCount} known tickets`);
 
         let actionSelectDropdown = document.querySelector("#action_select");
         if (actionSelectDropdown) {
@@ -319,10 +327,13 @@
             console.log("Set action to Change Status To");
         } else {
             console.error("Could not find the action select dropdown.");
+            alert("Could not find the action dropdown to close tickets.");
             return;
         }
 
+        // Allow time for the UI to update
         setTimeout(() => {
+            // Find and set the status dropdown
             let actionTypeDropdown = document.querySelector("#action_type");
             if (actionTypeDropdown) {
                 actionTypeDropdown.value = selectedCloseAction;
@@ -332,35 +343,42 @@
                 actionTypeDropdown.dispatchEvent(event);
             } else {
                 console.error("Could not find the action type dropdown.");
+                alert("Could not find the status dropdown to close tickets.");
                 return;
             }
             
-
+            // Allow more time for the UI to update
             setTimeout(() => {
-                let updateButton = document.querySelector("#action_update");
+                // Find the submit/update button - try multiple selectors
+                let updateButton = document.querySelector("#action_update") || 
+                                  document.querySelector("input[type='submit'][name='update']") ||
+                                  document.querySelector("input[type='submit'][name='submit']") || 
+                                  document.querySelector("button[type='submit']") ||
+                                  document.querySelector(".table-footer input[type='submit']");
+                                  
                 if (updateButton) {
-                    console.log(`Clicking the update button to ${selectedCloseActionText.toLowerCase()} tickets.`);
+                    console.log(`Clicking the update button: ${updateButton.outerHTML}`);
                     updateButton.click();
+                    
+                    // Clear known tickets after processing
+                    knownTickets = [];
+                    localStorage.removeItem("knownTickets");
+                    localStorage.removeItem("ticketTitles");
+                    
+                    setTimeout(() => location.reload(), 3000);
                 } else {
-                    updateButton = document.querySelector("input[type='submit'][name='submit']") || 
-                                   document.querySelector("button[type='submit']");
-                    if (updateButton) {
-                        console.log("Found alternative update button, clicking it.");
-                        updateButton.click();
-                    } else {
-                        console.error("Could not find any update button.");
-                        return;
+                    console.error("Could not find any update button.");
+                    alert("Could not find the Update button to close tickets. Look for it manually.");
+                    
+                    // Try one more approach - find any button or input that might be the submit button
+                    const possibleButtons = document.querySelectorAll("input[type='submit'], button[type='submit'], button:contains('Update'), input:contains('Update')");
+                    console.log("Possible update buttons found:", possibleButtons.length);
+                    if (possibleButtons.length > 0) {
+                        console.log("First possible button:", possibleButtons[0].outerHTML);
                     }
                 }
-                
-                // Clear known tickets after processing them
-                knownTickets = [];
-                localStorage.removeItem("knownTickets");
-                localStorage.removeItem("ticketTitles");
-                
-                setTimeout(() => location.reload(), 3000);
-            }, 500); // Wait for action_type change to take effect
-        }, 500); // Wait for action_select change to take effect
+            }, 800); // Increased timeout for more reliable UI updates
+        }, 800); // Increased timeout for more reliable UI updates
     }
 
     function selectAllTickets() {
@@ -559,18 +577,9 @@
             startRefreshTimer();
         });
 
-        document.getElementById("selectAllButton").addEventListener("click", () => {
-            selectAllTickets();
-        });
-
-        document.getElementById("deselectAllButton").addEventListener("click", () => {
-            deselectAllTickets();
-        });
-
         document.getElementById("selectAllButton").addEventListener("click", selectAllTickets);
         document.getElementById("deselectAllButton").addEventListener("click", deselectAllTickets);
         document.getElementById("keywordsHeader").addEventListener("click", toggleKeywordsList);
-        document.getElementById("selectProblemResolvedPairs").addEventListener("click", selectProblemResolvedPairs);
         document.getElementById("selectProblemResolvedPairs").addEventListener("click", selectProblemResolvedPairs);
 
         // Automatically search for known keywords
