@@ -347,36 +347,47 @@
                 return;
             }
             
-            // Allow more time for the UI to update
             setTimeout(() => {
-                // Find the submit/update button - try multiple selectors
-                let updateButton = document.querySelector("#action_update") || 
-                                  document.querySelector("input[type='submit'][name='update']") ||
-                                  document.querySelector("input[type='submit'][name='submit']") || 
-                                  document.querySelector("button[type='submit']") ||
-                                  document.querySelector(".table-footer input[type='submit']");
-                                  
-                if (updateButton) {
-                    console.log(`Clicking the update button: ${updateButton.outerHTML}`);
-                    updateButton.click();
+                function findAndClickUpdateButton(attempts = 0) {
+                    const maxAttempts = 5;
+                    const updateButton = document.querySelector("#action_update");
                     
-                    // Clear known tickets after processing
-                    knownTickets = [];
-                    localStorage.removeItem("knownTickets");
-                    localStorage.removeItem("ticketTitles");
-                    
-                    setTimeout(() => location.reload(), 3000);
-                } else {
-                    console.error("Could not find any update button.");
-                    alert("Could not find the Update button to close tickets. Look for it manually.");
-                    
-                    // Try one more approach - find any button or input that might be the submit button
-                    const possibleButtons = document.querySelectorAll("input[type='submit'], button[type='submit'], button:contains('Update'), input:contains('Update')");
-                    console.log("Possible update buttons found:", possibleButtons.length);
-                    if (possibleButtons.length > 0) {
-                        console.log("First possible button:", possibleButtons[0].outerHTML);
+                    if (updateButton) {
+                        console.log(`Found update button with ID 'action_update', clicking it...`);
+                        updateButton.click();
+                        
+                        // Clear known tickets after processing
+                        knownTickets = [];
+                        localStorage.removeItem("knownTickets");
+                        localStorage.removeItem("ticketTitles");
+                        
+                        setTimeout(() => location.reload(), 3000);
+                    } else if (attempts < maxAttempts) {
+                        console.log(`Update button not found, retrying... (${attempts + 1}/${maxAttempts})`);
+                        setTimeout(() => {
+                            findAndClickUpdateButton(attempts + 1);
+                        }, 500);
+                    } else {
+                        console.error("Could not find the update button after multiple attempts");
+                        alert("Could not find the Update button. Please check the console for debug information.");
+                        
+                        // Last resort - try to submit the form directly
+                        const form = document.querySelector("form#list");
+                        if (form) {
+                            console.log("Trying to submit the form directly");
+                            form.submit();
+                            
+                            knownTickets = [];
+                            localStorage.removeItem("knownTickets");
+                            localStorage.removeItem("ticketTitles");
+                            
+                            setTimeout(() => location.reload(), 3000);
+                        }
                     }
                 }
+                
+                // Start looking for the update button
+                findAndClickUpdateButton();
             }, 800); // Increased timeout for more reliable UI updates
         }, 800); // Increased timeout for more reliable UI updates
     }
@@ -472,7 +483,6 @@
             if (resolvedTickets[title]) {
                 pairCount++;
                 
-                // Select both tickets
                 const problemRow = problemTickets[title].row;
                 const resolvedRow = resolvedTickets[title].row;
                 const problemNumber = problemTickets[title].ticketNumber;
@@ -484,9 +494,7 @@
                     problemCheckbox.checked = true;
                     problemRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                     problemRow.style.backgroundColor = HIGHLIGHT_COLOR;
-                    // Remove transform scale - only set background color
                     
-                    // Add to known tickets
                     if (!knownTickets.includes(problemNumber)) {
                         knownTickets.push(problemNumber);
                         ticketTitles[problemNumber] = `Problem: ${title}`;
@@ -495,12 +503,9 @@
                 
                 if (resolvedCheckbox) {
                     resolvedCheckbox.checked = true;
-                    // Apply highlighting
                     resolvedRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                     resolvedRow.style.backgroundColor = HIGHLIGHT_COLOR;
-                    // Remove transform scale - only set background color
-                    
-                    // Add to known tickets
+
                     if (!knownTickets.includes(resolvedNumber)) {
                         knownTickets.push(resolvedNumber);
                         ticketTitles[resolvedNumber] = `Resolved: ${title}`;
