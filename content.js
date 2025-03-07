@@ -11,6 +11,7 @@
     const TRANSITION_DURATION = 400; // ms
     const HIGHLIGHT_DURATION = 500; // ms
     const STAGGER_DELAY = 100; // ms
+    const SCALE_FACTOR = 1.02; // 2% size increase
 
     let knownTickets = JSON.parse(localStorage.getItem("knownTickets")) || [];
     let ticketTitles = JSON.parse(localStorage.getItem("ticketTitles")) || {}; // Store ticket titles
@@ -57,6 +58,8 @@
                 <button id="selectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Select All</button>
                 <button id="deselectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Deselect All</button>
             </div>
+            
+            <button id="selectProblemResolvedPairs" style="padding: 10px; background: #9C27B0; color: white; border: none; cursor: pointer; border-radius: 8px;">Select Problem/Resolved Pairs</button>
             
             <button id="clearKnownKeywordsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Keywords</button>
             <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
@@ -130,7 +133,6 @@
     }
 
     function findTicketTable() {
-        // Try to find the table by a more specific attribute
         const tables = document.querySelectorAll("table");
         for (const table of tables) {
             if (table.querySelector("th") && 
@@ -139,7 +141,6 @@
                 return table.querySelector("tbody");
             }
         }
-        // Fallback to the current method
         return document.querySelectorAll("tbody")[2];
     }
 
@@ -153,10 +154,15 @@
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row, index) => {
             setTimeout(() => {
-                row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
+                row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
                 row.style.backgroundColor = HIGHLIGHT_COLOR;
+                row.style.transform = `scale(${SCALE_FACTOR})`;
+                row.style.zIndex = "1";
+                row.style.position = "relative";
+                
                 setTimeout(() => {
                     row.style.backgroundColor = "";
+                    row.style.transform = "scale(1)";
                 }, HIGHLIGHT_DURATION);
             }, index * STAGGER_DELAY);
         });
@@ -184,9 +190,14 @@
             if (!checkboxCell.hasEventListener) {
                 checkboxCell.addEventListener("change", (e) => {
                     if (e.target.checked) {
+                        row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
                         row.style.backgroundColor = HIGHLIGHT_COLOR;
+                        row.style.transform = `scale(${SCALE_FACTOR})`;
+                        row.style.zIndex = "1";
+                        row.style.position = "relative";
                     } else {
                         row.style.backgroundColor = "";
+                        row.style.transform = "scale(1)";
                     }
                 });
                 checkboxCell.hasEventListener = true;
@@ -195,8 +206,11 @@
             if (keyword && subjectText.toLowerCase().includes(keyword.toLowerCase())) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 setTimeout(() => {
-                    row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
+                    row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
                     row.style.backgroundColor = HIGHLIGHT_COLOR;
+                    row.style.transform = `scale(${SCALE_FACTOR})`;
+                    row.style.zIndex = "1";
+                    row.style.position = "relative";
                     checkboxCell.checked = true;
                 }, STAGGER_DELAY * index);
                 
@@ -220,7 +234,6 @@
             updateKnownKeywordsUI();
             newKeywordInput.value = ""; // Clear the input field
             
-            // Automatically search for the new keyword
             highlightAllRows();
             setTimeout(() => {
                 findMatchingTickets(newKeyword);
@@ -276,7 +289,6 @@
             return;
         }
 
-        // Use fixed action value "3" for Close
         const selectedCloseAction = "3";
         const selectedCloseActionText = "Close";
         
@@ -289,7 +301,6 @@
             return;
         }
 
-        // Select the checkboxes for known tickets
         let ticketRows = ticketTableBody.querySelectorAll("tr");
         ticketRows.forEach((row) => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
@@ -304,8 +315,6 @@
             }
         });
 
-        // Set up the action dropdowns in correct sequence:
-        // 1. First select "Change Status To" in the action_select dropdown
         let actionSelectDropdown = document.querySelector("#action_select");
         if (actionSelectDropdown) {
             actionSelectDropdown.value = "status";
@@ -318,15 +327,13 @@
             return;
         }
 
-        // 2. Allow time for UI to update and then set the selected action type
         setTimeout(() => {
             let actionTypeDropdown = document.querySelector("#action_type");
             if (actionTypeDropdown) {
                 // Use the selected value from our dropdown
                 actionTypeDropdown.value = selectedCloseAction;
                 console.log(`Set action type to ${selectedCloseActionText} with value: ${selectedCloseAction}`);
-                
-                // Trigger change event
+
                 const event = new Event('change', { bubbles: true });
                 actionTypeDropdown.dispatchEvent(event);
             } else {
@@ -334,14 +341,13 @@
                 return;
             }
             
-            // 3. Click the update button
+
             setTimeout(() => {
                 let updateButton = document.querySelector("#action_update");
                 if (updateButton) {
                     console.log(`Clicking the update button to ${selectedCloseActionText.toLowerCase()} tickets.`);
                     updateButton.click();
                 } else {
-                    // Try alternative button selectors
                     updateButton = document.querySelector("input[type='submit'][name='submit']") || 
                                    document.querySelector("button[type='submit']");
                     if (updateButton) {
@@ -372,7 +378,11 @@
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             if (checkboxCell) {
                 checkboxCell.checked = true;
+                row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
                 row.style.backgroundColor = HIGHLIGHT_COLOR;
+                row.style.transform = `scale(${SCALE_FACTOR})`;
+                row.style.zIndex = "1";
+                row.style.position = "relative";
             }
         });
     }
@@ -387,6 +397,7 @@
             if (checkboxCell) {
                 checkboxCell.checked = false;
                 row.style.backgroundColor = "";
+                row.style.transform = "scale(1)";
             }
         });
         
@@ -407,8 +418,103 @@
         toggleIcon.textContent = isCollapsed ? '▼' : '▶';
         keywordsHeader.style.borderBottom = isCollapsed ? '1px solid #ccc' : 'none';
         
-        // Save state to localStorage
         localStorage.setItem('keywordsCollapsed', !isCollapsed);
+    }
+
+    function selectProblemResolvedPairs() {
+        let ticketTableBody = findTicketTable();
+        if (!ticketTableBody) {
+            console.error("Could not find ticket table.");
+            return;
+        }
+    
+        const problemTickets = {};
+        const resolvedTickets = {};
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        
+        ticketRows.forEach(row => {
+            const subjectCell = row.querySelector("td:nth-child(3) a");
+            const ticketNumberCell = row.querySelector("td:nth-child(2)");
+            
+            if (!subjectCell || !ticketNumberCell) return;
+            
+            const ticketNumber = ticketNumberCell.innerText.trim();
+            const subject = subjectCell.innerText.trim();
+            
+
+            if (subject.startsWith("Problem:")) {
+                const title = subject.substring("Problem:".length).trim();
+                problemTickets[title] = {
+                    ticketNumber,
+                    row
+                };
+            } else if (subject.startsWith("Resolved:")) {
+                const title = subject.substring("Resolved:".length).trim();
+                resolvedTickets[title] = {
+                    ticketNumber,
+                    row
+                };
+            }
+        });
+        
+        let pairCount = 0;
+        for (const title in problemTickets) {
+            if (resolvedTickets[title]) {
+                pairCount++;
+                
+                // Select both tickets
+                const problemRow = problemTickets[title].row;
+                const resolvedRow = resolvedTickets[title].row;
+                const problemNumber = problemTickets[title].ticketNumber;
+                const resolvedNumber = resolvedTickets[title].ticketNumber;
+                const problemCheckbox = problemRow.querySelector("td:nth-child(1) input[type='checkbox']");
+                const resolvedCheckbox = resolvedRow.querySelector("td:nth-child(1) input[type='checkbox']");
+                
+                if (problemCheckbox) {
+                    problemCheckbox.checked = true;
+                    problemRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                    problemRow.style.backgroundColor = HIGHLIGHT_COLOR;
+                    problemRow.style.transform = `scale(${SCALE_FACTOR})`;
+                    problemRow.style.zIndex = "1";
+                    problemRow.style.position = "relative";
+                    
+                    // Add to known tickets
+                    if (!knownTickets.includes(problemNumber)) {
+                        knownTickets.push(problemNumber);
+                        ticketTitles[problemNumber] = `Problem: ${title}`;
+                    }
+                }
+                
+                if (resolvedCheckbox) {
+                    resolvedCheckbox.checked = true;
+                    // Apply highlighting
+                    resolvedRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                    resolvedRow.style.backgroundColor = HIGHLIGHT_COLOR;
+                    resolvedRow.style.transform = `scale(${SCALE_FACTOR})`;
+                    resolvedRow.style.zIndex = "1";
+                    resolvedRow.style.position = "relative";
+                    
+                    // Add to known tickets
+                    if (!knownTickets.includes(resolvedNumber)) {
+                        knownTickets.push(resolvedNumber);
+                        ticketTitles[resolvedNumber] = `Resolved: ${title}`;
+                    }
+                }
+                
+                console.log(`Selected matching pair: "${title}"`);
+            }
+        }
+        
+        // Update localStorage
+        localStorage.setItem("knownTickets", JSON.stringify(knownTickets));
+        localStorage.setItem("ticketTitles", JSON.stringify(ticketTitles));
+        
+        // Show result to user
+        if (pairCount > 0) {
+            alert(`Found and selected ${pairCount} Problem/Resolved ticket pairs`);
+        } else {
+            alert("No matching Problem/Resolved ticket pairs found");
+        }
     }
 
     setTimeout(() => {
@@ -473,12 +579,11 @@
             deselectAllTickets();
         });
 
-        // Add these with your other event listeners
         document.getElementById("selectAllButton").addEventListener("click", selectAllTickets);
         document.getElementById("deselectAllButton").addEventListener("click", deselectAllTickets);
-
-        // Add this in the setTimeout function with other event listeners
         document.getElementById("keywordsHeader").addEventListener("click", toggleKeywordsList);
+        document.getElementById("selectProblemResolvedPairs").addEventListener("click", selectProblemResolvedPairs);
+        document.getElementById("selectProblemResolvedPairs").addEventListener("click", selectProblemResolvedPairs);
 
         // Automatically search for known keywords
         knownKeywords.forEach(keyword => {
@@ -488,7 +593,7 @@
             }, HIGHLIGHT_DURATION + 100);
         });
 
-        startRefreshTimer(); // Start the refresh timer
+        startRefreshTimer(); 
 
         // Run highlightAllRows and findMatchingTickets on page refresh
         highlightAllRows();
