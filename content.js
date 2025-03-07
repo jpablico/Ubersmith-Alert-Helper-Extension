@@ -42,15 +42,8 @@
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
             <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-            
-            <div style="display: flex; gap: 10px; margin: 10px 0;">
-                <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Confirm Closure</button>
-                <select id="closeActionType" style="padding: 10px; border: 1px solid #ccc; border-radius: 8px; flex: 1;">
-                    <option value="3">Close</option>
-                    <option value="4">Deleted</option>
-                    <option value="2">Pending</option>
-                </select>
-            </div>
+        
+            <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px; margin: 10px 0;">Close Selected Tickets</button>
             
             <div style="display: flex; gap: 10px; margin-top: 5px;">
                 <button id="selectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Select All</button>
@@ -266,11 +259,9 @@
             return;
         }
 
-        // Get the user-selected action type
-        const selectedCloseAction = document.getElementById("closeActionType").value;
-        const selectedCloseActionText = document.getElementById("closeActionType").options[
-            document.getElementById("closeActionType").selectedIndex
-        ].text;
+        // Use fixed action value "3" for Close
+        const selectedCloseAction = "3";
+        const selectedCloseActionText = "Close";
         
         console.log(`Using action type: ${selectedCloseActionText} (${selectedCloseAction})`);
 
@@ -426,11 +417,7 @@
                 return;
             }
             
-            const actionText = document.getElementById("closeActionType").options[
-                document.getElementById("closeActionType").selectedIndex
-            ].text.toLowerCase();
-            
-            if (confirm(`Are you sure you want to ${actionText} ${ticketCount} ticket(s)?`)) {
+            if (confirm(`Are you sure you want to close ${ticketCount} ticket(s)?`)) {
                 confirmClosureClicked = true;
                 closeMatchingTickets();
             }
