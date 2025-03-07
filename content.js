@@ -42,7 +42,21 @@
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
             <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-            <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px;">Confirm Closure</button>
+            
+            <div style="display: flex; gap: 10px; margin: 10px 0;">
+                <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Confirm Closure</button>
+                <select id="closeActionType" style="padding: 10px; border: 1px solid #ccc; border-radius: 8px; flex: 1;">
+                    <option value="3">Close</option>
+                    <option value="4">Deleted</option>
+                    <option value="2">Pending</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                <button id="selectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Select All</button>
+                <button id="deselectAllButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px; flex: 1;">Deselect All</button>
+            </div>
+            
             <button id="clearKnownKeywordsButton" style="padding: 10px; background: #555; color: white; border: none; cursor: pointer; border-radius: 8px;">Clear Known Keywords</button>
             <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
                 <label for="refreshInterval">Refresh interval (minutes):</label>
@@ -156,6 +170,18 @@
             let subjectText = subjectCell.innerText.trim();
             let ticketNumber = ticketNumberCell.innerText.trim();
             
+            // Add checkbox change event listener to update highlighting
+            if (!checkboxCell.hasEventListener) {
+                checkboxCell.addEventListener("change", (e) => {
+                    if (e.target.checked) {
+                        row.style.backgroundColor = HIGHLIGHT_COLOR;
+                    } else {
+                        row.style.backgroundColor = "";
+                    }
+                });
+                checkboxCell.hasEventListener = true;
+            }
+            
             if (keyword && subjectText.toLowerCase().includes(keyword.toLowerCase())) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 setTimeout(() => {
@@ -240,6 +266,14 @@
             return;
         }
 
+        // Get the user-selected action type
+        const selectedCloseAction = document.getElementById("closeActionType").value;
+        const selectedCloseActionText = document.getElementById("closeActionType").options[
+            document.getElementById("closeActionType").selectedIndex
+        ].text;
+        
+        console.log(`Using action type: ${selectedCloseActionText} (${selectedCloseAction})`);
+
         let ticketTableBody = findTicketTable();
         if (!ticketTableBody) {
             console.error("Could not find ticket table.");
@@ -247,13 +281,13 @@
             return;
         }
 
+        // Select the checkboxes for known tickets
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        ticketRows.forEach((row, index) => {
+        ticketRows.forEach((row) => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
-            let subjectCell = row.querySelector("td:nth-child(3) a");
             
-            if (!checkboxCell || !subjectCell || !ticketNumberCell) return;
+            if (!checkboxCell || !ticketNumberCell) return;
             
             let ticketNumber = ticketNumberCell.innerText.trim();
             
@@ -262,30 +296,96 @@
             }
         });
 
-        // Set the action type to "Closed"
-        let actionTypeDropdown = document.querySelector("#action_type");
-        if (actionTypeDropdown) {
-            actionTypeDropdown.value = "3"; // Set to "Closed"
-            console.log("Set action type to Closed.");
+        // Set up the action dropdowns in correct sequence:
+        // 1. First select "Change Status To" in the action_select dropdown
+        let actionSelectDropdown = document.querySelector("#action_select");
+        if (actionSelectDropdown) {
+            actionSelectDropdown.value = "status";
+            // Trigger change event to make the action_type dropdown visible
+            const event = new Event('change', { bubbles: true });
+            actionSelectDropdown.dispatchEvent(event);
+            console.log("Set action to Change Status To");
         } else {
-            console.error("Could not find the action type dropdown.");
+            console.error("Could not find the action select dropdown.");
+            return;
         }
 
-        // Simulate clicking the update button to close tickets
-        let updateButton = document.querySelector("#action_update");
-        if (updateButton) {
-            console.log("Clicking the update button to close tickets.");
-            updateButton.click();
-        } else {
-            console.error("Could not find the update button.");
-        }
+        // 2. Allow time for UI to update and then set the selected action type
+        setTimeout(() => {
+            let actionTypeDropdown = document.querySelector("#action_type");
+            if (actionTypeDropdown) {
+                // Use the selected value from our dropdown
+                actionTypeDropdown.value = selectedCloseAction;
+                console.log(`Set action type to ${selectedCloseActionText} with value: ${selectedCloseAction}`);
+                
+                // Trigger change event
+                const event = new Event('change', { bubbles: true });
+                actionTypeDropdown.dispatchEvent(event);
+            } else {
+                console.error("Could not find the action type dropdown.");
+                return;
+            }
+            
+            // 3. Click the update button
+            setTimeout(() => {
+                let updateButton = document.querySelector("#action_update");
+                if (updateButton) {
+                    console.log(`Clicking the update button to ${selectedCloseActionText.toLowerCase()} tickets.`);
+                    updateButton.click();
+                } else {
+                    // Try alternative button selectors
+                    updateButton = document.querySelector("input[type='submit'][name='submit']") || 
+                                   document.querySelector("button[type='submit']");
+                    if (updateButton) {
+                        console.log("Found alternative update button, clicking it.");
+                        updateButton.click();
+                    } else {
+                        console.error("Could not find any update button.");
+                        return;
+                    }
+                }
+                
+                // Clear known tickets after processing them
+                knownTickets = [];
+                localStorage.removeItem("knownTickets");
+                localStorage.removeItem("ticketTitles");
+                
+                setTimeout(() => location.reload(), 3000);
+            }, 500); // Wait for action_type change to take effect
+        }, 500); // Wait for action_select change to take effect
+    }
 
-        // Clear known tickets after closing them
+    function selectAllTickets() {
+        let ticketTableBody = findTicketTable();
+        if (!ticketTableBody) return;
+        
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach(row => {
+            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            if (checkboxCell) {
+                checkboxCell.checked = true;
+                row.style.backgroundColor = HIGHLIGHT_COLOR;
+            }
+        });
+    }
+
+    function deselectAllTickets() {
+        let ticketTableBody = findTicketTable();
+        if (!ticketTableBody) return;
+        
+        let ticketRows = ticketTableBody.querySelectorAll("tr");
+        ticketRows.forEach(row => {
+            let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
+            if (checkboxCell) {
+                checkboxCell.checked = false;
+                row.style.backgroundColor = "";
+            }
+        });
+        
+        // Clear known tickets when deselecting all
         knownTickets = [];
         localStorage.removeItem("knownTickets");
         localStorage.removeItem("ticketTitles");
-
-        setTimeout(() => location.reload(), 3000);
     }
 
     setTimeout(() => {
@@ -326,7 +426,11 @@
                 return;
             }
             
-            if (confirm(`Are you sure you want to close ${ticketCount} ticket(s)?`)) {
+            const actionText = document.getElementById("closeActionType").options[
+                document.getElementById("closeActionType").selectedIndex
+            ].text.toLowerCase();
+            
+            if (confirm(`Are you sure you want to ${actionText} ${ticketCount} ticket(s)?`)) {
                 confirmClosureClicked = true;
                 closeMatchingTickets();
             }
@@ -341,6 +445,18 @@
             localStorage.setItem("refreshInterval", minutes);
             startRefreshTimer();
         });
+
+        document.getElementById("selectAllButton").addEventListener("click", () => {
+            selectAllTickets();
+        });
+
+        document.getElementById("deselectAllButton").addEventListener("click", () => {
+            deselectAllTickets();
+        });
+
+        // Add these with your other event listeners
+        document.getElementById("selectAllButton").addEventListener("click", selectAllTickets);
+        document.getElementById("deselectAllButton").addEventListener("click", deselectAllTickets);
 
         // Automatically search for known keywords
         knownKeywords.forEach(keyword => {
