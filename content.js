@@ -186,18 +186,15 @@
             let subjectText = subjectCell.innerText.trim();
             let ticketNumber = ticketNumberCell.innerText.trim();
             
-            // Add checkbox change event listener to update highlighting
             if (!checkboxCell.hasEventListener) {
                 checkboxCell.addEventListener("change", (e) => {
                     if (e.target.checked) {
-                        row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                        row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                         row.style.backgroundColor = HIGHLIGHT_COLOR;
-                        row.style.transform = `scale(${SCALE_FACTOR})`;
-                        row.style.zIndex = "1";
-                        row.style.position = "relative";
+                        // Remove transform scale - only set background color
                     } else {
                         row.style.backgroundColor = "";
-                        row.style.transform = "scale(1)";
+                        // 
                     }
                 });
                 checkboxCell.hasEventListener = true;
@@ -206,11 +203,9 @@
             if (keyword && subjectText.toLowerCase().includes(keyword.toLowerCase())) {
                 console.log(`Found matching ticket: ${ticketNumber} - ${subjectText}`);
                 setTimeout(() => {
-                    row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                    row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                     row.style.backgroundColor = HIGHLIGHT_COLOR;
-                    row.style.transform = `scale(${SCALE_FACTOR})`;
-                    row.style.zIndex = "1";
-                    row.style.position = "relative";
+                    // Remove transform scale - only set background color
                     checkboxCell.checked = true;
                 }, STAGGER_DELAY * index);
                 
@@ -330,7 +325,6 @@
         setTimeout(() => {
             let actionTypeDropdown = document.querySelector("#action_type");
             if (actionTypeDropdown) {
-                // Use the selected value from our dropdown
                 actionTypeDropdown.value = selectedCloseAction;
                 console.log(`Set action type to ${selectedCloseActionText} with value: ${selectedCloseAction}`);
 
@@ -378,11 +372,9 @@
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             if (checkboxCell) {
                 checkboxCell.checked = true;
-                row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                row.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                 row.style.backgroundColor = HIGHLIGHT_COLOR;
-                row.style.transform = `scale(${SCALE_FACTOR})`;
-                row.style.zIndex = "1";
-                row.style.position = "relative";
+                // Remove transform scale - only set background color
             }
         });
     }
@@ -472,11 +464,9 @@
                 
                 if (problemCheckbox) {
                     problemCheckbox.checked = true;
-                    problemRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                    problemRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                     problemRow.style.backgroundColor = HIGHLIGHT_COLOR;
-                    problemRow.style.transform = `scale(${SCALE_FACTOR})`;
-                    problemRow.style.zIndex = "1";
-                    problemRow.style.position = "relative";
+                    // Remove transform scale - only set background color
                     
                     // Add to known tickets
                     if (!knownTickets.includes(problemNumber)) {
@@ -488,11 +478,9 @@
                 if (resolvedCheckbox) {
                     resolvedCheckbox.checked = true;
                     // Apply highlighting
-                    resolvedRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease, transform ${TRANSITION_DURATION/1000}s ease`;
+                    resolvedRow.style.transition = `background-color ${TRANSITION_DURATION/1000}s ease`;
                     resolvedRow.style.backgroundColor = HIGHLIGHT_COLOR;
-                    resolvedRow.style.transform = `scale(${SCALE_FACTOR})`;
-                    resolvedRow.style.zIndex = "1";
-                    resolvedRow.style.position = "relative";
+                    // Remove transform scale - only set background color
                     
                     // Add to known tickets
                     if (!knownTickets.includes(resolvedNumber)) {
