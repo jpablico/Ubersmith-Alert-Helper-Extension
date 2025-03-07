@@ -41,8 +41,16 @@
             <input id="newKeywordInput" type="text" placeholder="Enter new keyword" 
                 style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
             <button id="addKeywordButton" style="padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 8px;">Add Keyword</button>
-            <div id="knownKeywordsList" style="background: white; padding: 10px; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; border-radius: 8px;"></div>
-        
+            
+            <!-- Collapsible keywords section -->
+            <div style="background: white; padding: 0; border: 1px solid #ccc; border-radius: 8px;">
+                <div id="keywordsHeader" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; cursor: pointer; background-color: #f5f5f5; border-bottom: ${localStorage.getItem('keywordsCollapsed') === 'true' ? 'none' : '1px solid #ccc'};">
+                    <strong>Known Keywords</strong>
+                    <span id="toggleKeywords" style="font-size: 18px;">${localStorage.getItem('keywordsCollapsed') === 'true' ? '▶' : '▼'}</span>
+                </div>
+                <div id="knownKeywordsList" style="padding: 10px; max-height: 150px; overflow-y: auto; ${localStorage.getItem('keywordsCollapsed') === 'true' ? 'display: none;' : ''}"></div>
+            </div>
+            
             <button id="confirmCloseButton" style="padding: 10px; background: #FF5733; color: white; border: none; cursor: pointer; border-radius: 8px; margin: 10px 0;">Close Selected Tickets</button>
             
             <div style="display: flex; gap: 10px; margin-top: 5px;">
@@ -71,9 +79,10 @@
 
     function updateKnownKeywordsUI() {
         let knownKeywordsList = document.getElementById("knownKeywordsList");
-        knownKeywordsList.innerHTML = "<strong>Known Keywords:</strong><br>";
+        knownKeywordsList.innerHTML = "";
+        
         if (knownKeywords.length === 0) {
-            knownKeywordsList.innerHTML += "No known keywords.";
+            knownKeywordsList.innerHTML = "<div style='font-style: italic; color: #888;'>No known keywords</div>";
         } else {
             knownKeywords.forEach(keyword => {
                 let item = document.createElement("div");
@@ -84,6 +93,11 @@
                 
                 let keywordText = document.createElement("span");
                 keywordText.innerText = keyword;
+                keywordText.style.cursor = "pointer";
+                keywordText.onclick = () => {
+                    document.getElementById("keywordInput").value = keyword;
+                    document.getElementById("queryTicketsButton").click();
+                };
                 
                 let removeBtn = document.createElement("button");
                 removeBtn.innerText = "×";
@@ -97,7 +111,10 @@
                 removeBtn.style.display = "flex";
                 removeBtn.style.justifyContent = "center";
                 removeBtn.style.alignItems = "center";
-                removeBtn.onclick = () => removeKeyword(keyword);
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeKeyword(keyword);
+                };
                 
                 item.appendChild(keywordText);
                 item.appendChild(removeBtn);
@@ -379,6 +396,21 @@
         localStorage.removeItem("ticketTitles");
     }
 
+    function toggleKeywordsList() {
+        const keywordsList = document.getElementById('knownKeywordsList');
+        const toggleIcon = document.getElementById('toggleKeywords');
+        const keywordsHeader = document.getElementById('keywordsHeader');
+        const isCollapsed = keywordsList.style.display === 'none';
+        
+        // Toggle display
+        keywordsList.style.display = isCollapsed ? 'block' : 'none';
+        toggleIcon.textContent = isCollapsed ? '▼' : '▶';
+        keywordsHeader.style.borderBottom = isCollapsed ? '1px solid #ccc' : 'none';
+        
+        // Save state to localStorage
+        localStorage.setItem('keywordsCollapsed', !isCollapsed);
+    }
+
     setTimeout(() => {
         createUI();
         
@@ -444,6 +476,9 @@
         // Add these with your other event listeners
         document.getElementById("selectAllButton").addEventListener("click", selectAllTickets);
         document.getElementById("deselectAllButton").addEventListener("click", deselectAllTickets);
+
+        // Add this in the setTimeout function with other event listeners
+        document.getElementById("keywordsHeader").addEventListener("click", toggleKeywordsList);
 
         // Automatically search for known keywords
         knownKeywords.forEach(keyword => {
