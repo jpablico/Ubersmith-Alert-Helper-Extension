@@ -286,22 +286,11 @@
 
         confirmClosureClicked = false;
 
-        const selectedCloseAction = "3";
-        const selectedCloseActionText = "Close";
-        
-        console.log(`Using action type: ${selectedCloseActionText} (${selectedCloseAction})`);
-        console.log(`Attempting to close ${ticketCount} tickets: ${knownTickets.join(', ')}`);
-
-        let ticketTableBody = findTicketTable();
-        if (!ticketTableBody) {
-            console.error("Could not find ticket table.");
-            alert("Could not find the correct ticket list.");
-            return;
-        }
-
         // Select all the checkboxes for our tracked tickets
+        let ticketTableBody = findTicketTable();
+        if (!ticketTableBody) return;
+        
         let ticketRows = ticketTableBody.querySelectorAll("tr");
-        let checkedCount = 0;
         ticketRows.forEach((row) => {
             let checkboxCell = row.querySelector("td:nth-child(1) input[type='checkbox']");
             let ticketNumberCell = row.querySelector("td:nth-child(2)");
@@ -309,87 +298,79 @@
             if (!checkboxCell || !ticketNumberCell) return;
             
             let ticketNumber = ticketNumberCell.innerText.trim();
-            
             if (knownTickets.includes(ticketNumber)) {
                 checkboxCell.checked = true;
-                checkedCount++;
             }
         });
         
-        console.log(`Selected ${checkedCount} checkboxes out of ${ticketCount} known tickets`);
-
-        let actionSelectDropdown = document.querySelector("#action_select");
-        if (actionSelectDropdown) {
-            actionSelectDropdown.value = "status";
-            // Trigger change event to make the action_type dropdown visible
-            const event = new Event('change', { bubbles: true });
-            actionSelectDropdown.dispatchEvent(event);
-            console.log("Set action to Change Status To");
-        } else {
-            console.error("Could not find the action select dropdown.");
-            alert("Could not find the action dropdown to close tickets.");
+        // After selecting checkboxes, find and set action dropdowns
+        let actionSelectDropdown = document.querySelector("select[name='action_select']");
+        if (!actionSelectDropdown) {
+            console.error("Could not find action_select dropdown");
+            alert("Could not find the action dropdown. Please close tickets manually.");
             return;
         }
-
-        // Allow time for the UI to update
+        
+        actionSelectDropdown.value = "status";
+        actionSelectDropdown.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        console.log("Setting up to search for action_update button...");
+        
         setTimeout(() => {
-            // Find and set the status dropdown
-            let actionTypeDropdown = document.querySelector("#action_type");
-            if (actionTypeDropdown) {
-                actionTypeDropdown.value = selectedCloseAction;
-                console.log(`Set action type to ${selectedCloseActionText} with value: ${selectedCloseAction}`);
-
-                const event = new Event('change', { bubbles: true });
-                actionTypeDropdown.dispatchEvent(event);
-            } else {
-                console.error("Could not find the action type dropdown.");
-                alert("Could not find the status dropdown to close tickets.");
+            let actionTypeDropdown = document.querySelector("select[name='action_type']");
+            if (!actionTypeDropdown) {
+                console.error("Could not find action_type dropdown");
+                alert("Could not find the status dropdown. Please close tickets manually.");
                 return;
             }
             
-            setTimeout(() => {
-                function findAndClickUpdateButton(attempts = 0) {
-                    const maxAttempts = 5;
-                    const updateButton = document.querySelector("#action_update");
+            actionTypeDropdown.value = "3";
+            actionTypeDropdown.dispatchEvent(new Event('change', { bubbles: true }));
+
+            let attempts = 0;
+            const maxAttempts = 5;
+            
+            function findAndClickActionUpdate() {
+                attempts++;
+                console.log(`Looking for #action_update (attempt ${attempts}/${maxAttempts})`);
+                
+                let updateButton = document.querySelector("#action_update");
+                
+                if (updateButton) {
+                    console.log("Found #action_update button:", updateButton);
+                    updateButton.click();
                     
-                    if (updateButton) {
-                        console.log(`Found update button with ID 'action_update', clicking it...`);
-                        updateButton.click();
+                    // Clear known tickets
+                    knownTickets = [];
+                    localStorage.removeItem("knownTickets");
+                    localStorage.removeItem("ticketTitles");
+                    
+                    setTimeout(() => location.reload(), 3000);
+                } else if (attempts < maxAttempts) {
+                    // Not found yet, retry after a delay
+                    console.log("Button not found yet, retrying...");
+                    setTimeout(findAndClickActionUpdate, 500);
+                } else {
+                    // We've tried enough times, submit the form directly as fallback
+                    console.error("Could not find #action_update button after multiple attempts");
+                    
+                    const form = document.querySelector("form#list");
+                    if (form) {
+                        console.log("Submitting form directly as fallback");
+                        form.submit();
                         
-                        // Clear known tickets after processing
                         knownTickets = [];
                         localStorage.removeItem("knownTickets");
                         localStorage.removeItem("ticketTitles");
                         
                         setTimeout(() => location.reload(), 3000);
-                    } else if (attempts < maxAttempts) {
-                        console.log(`Update button not found, retrying... (${attempts + 1}/${maxAttempts})`);
-                        setTimeout(() => {
-                            findAndClickUpdateButton(attempts + 1);
-                        }, 500);
                     } else {
-                        console.error("Could not find the update button after multiple attempts");
-                        alert("Could not find the Update button. Please check the console for debug information.");
-                        
-                        // Last resort - try to submit the form directly
-                        const form = document.querySelector("form#list");
-                        if (form) {
-                            console.log("Trying to submit the form directly");
-                            form.submit();
-                            
-                            knownTickets = [];
-                            localStorage.removeItem("knownTickets");
-                            localStorage.removeItem("ticketTitles");
-                            
-                            setTimeout(() => location.reload(), 3000);
-                        }
+                        alert("Could not find the Update button or form. Please click it manually.");
                     }
                 }
-                
-                // Start looking for the update button
-                findAndClickUpdateButton();
-            }, 800); // Increased timeout for more reliable UI updates
-        }, 800); // Increased timeout for more reliable UI updates
+            }
+            setTimeout(findAndClickActionUpdate, 500);
+        }, 1000);
     }
 
     function selectAllTickets() {
